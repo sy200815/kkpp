@@ -904,7 +904,7 @@ input[type=range]::-webkit-slider-thumb {
                 <div id="common-settings-section">
                     <div class="settings-section">
                         <h3>API & 模型设置</h3>
-                        <div class="form-group"><label for="api-base-url">API端点 (Base URL)</label><input type="text" id="api-base-url" placeholder="例如: https://api.openai.com 或 https://generativelanguage.googleapis.com"></div>
+                        <div class="form-group"><label for="api-base-url">API端点 (Base URL)</label><input type="text" id="api-base-url" placeholder="OpenAI: https://api.openai.com | Gemini: https://generativelanguage.googleapis.com"></div>
                         <div class="form-group"><label for="api-key">API密钥 (API Key)</label><input type="password" id="api-key" placeholder="在此输入您的API密钥"></div>
                         <div class="form-group"><label for="model-select">模型选择 (提示: 图片识别请用gpt-4o等vision模型)</label><div class="model-group"><select id="model-select"></select><button id="fetch-models-btn">获取模型列表</button></div></div>
                     </div>
@@ -1464,11 +1464,10 @@ When the user sends you a transfer, you MUST first respond with a 'text' message
         const generateId = (prefix) => `${prefix}_${Date.now()}${Math.random().toString(36).substring(2, 9)}`;
 
         // --- API payload function ---
-        const getApiPayload = (model, history, systemPrompt) => {
+                const getApiPayload = (model, history, systemPrompt) => {
             const apiBaseUrl = elements.apiBaseUrlInput.value.trim().toLowerCase();
             const isGemini = apiBaseUrl.includes('google');
 
-            // TASK 10: Add real time awareness if enabled
             let finalSystemPrompt = systemPrompt;
             if (elements.realTimeAwarenessToggle.checked) {
                 const currentTime = `[System Knowledge: The current real-world date and time is ${new Date().toLocaleString('zh-CN', { timeZone: 'Asia/Shanghai' })}]`;
@@ -1479,35 +1478,54 @@ When the user sends you a transfer, you MUST first respond with a 'text' message
                 const formatForGemini = (msg) => {
                     if (!msg || typeof msg !== 'object' || msg.type === 'system' || typeof msg.sender !== 'string') return null;
                     const role = msg.sender === 'user' ? 'user' : 'model';
-                    if (msg.sender === 'user' && msg.type === 'image' && msg.imageUrl) {
-                        const textContent = msg.llmContent || msg.text || '用户发送了一张图片。';
-                        const mimeType = msg.imageUrl.startsWith('data:image/png') ? 'image/png' : 'image/jpeg';
-                        return { role, parts: [ { text: textContent }, { inline_data: { mime_type: mimeType, data: msg.imageUrl.split(',')[1] } } ]};
+                    let parts = [];
+                    
+                    const textContent = msg.llmContent || msg.text || '';
+                    if (textContent) {
+                        parts.push({ text: textContent });
                     }
-                    const content = msg.llmContent || msg.text || '';
-                    if (!content.trim()) return null;
-                    return { role, parts: [{ text: content }] };
+
+                    if (msg.sender === 'user' && msg.type === 'image' && msg.imageUrl) {
+                        if (!textContent) { // 如果图片没有附带文字，给一个默认说明
+                           parts.push({ text: '用户发送了一张图片。' });
+                        }
+                        const mimeType = msg.imageUrl.startsWith('data:image/png') ? 'image/png' : 'image/jpeg';
+                        parts.push({ inline_data: { mime_type: mimeType, data: msg.imageUrl.split(',')[1] } });
+                    }
+
+                    if (parts.length === 0) return null;
+                    return { role, parts };
                 };
                 
                 const contents = [
+                    // Gemini没有system角，我们用user/model对话来模拟
                     { role: 'user', parts: [{ text: finalSystemPrompt }] },
                     { role: 'model', parts: [{ text: '好的，我会严格遵守以上所有指令。' }] },
                     ...history.map(formatForGemini).filter(Boolean)
                 ];
-                return { contents, "generationConfig": { "temperature": parseFloat(elements.temperatureSlider.value), "topP": parseFloat(elements.topPSlider.value) } };
 
-            } else {
+                return { 
+                    contents, 
+                    "generationConfig": { 
+                        "temperature": parseFloat(elements.temperatureSlider.value), 
+                        "topP": parseFloat(elements.topPSlider.value) 
+                    } 
+                };
+
+            } else { // OpenAI 的逻辑
                 const formatForOpenAI = (msg) => {
                     if (!msg || typeof msg !== 'object' || msg.type === 'system' || typeof msg.sender !== 'string') return null;
                     const role = msg.sender === 'user' ? 'user' : 'assistant';
-                    let content = msg.llmContent || msg.text || '';
+                    
                     if (msg.sender === 'user' && msg.type === 'image' && msg.imageUrl) {
-                        const imageContent = [
-                            { type: 'text', text: content || '用户发送了一张图片。' },
+                        const content = [
+                            { type: 'text', text: msg.llmContent || msg.text || '用户发送了一张图片。' },
                             { type: 'image_url', image_url: { url: msg.imageUrl } }
                         ];
-                        return { role, content: imageContent };
+                        return { role, content };
                     }
+
+                    const content = msg.llmContent || msg.text || '';
                     if (!content.trim()) return null;
                     return { role, content };
                 };
@@ -1518,7 +1536,6 @@ When the user sends you a transfer, you MUST first respond with a 'text' message
                 return { model, messages, stream: false, temperature: parseFloat(elements.temperatureSlider.value), top_p: parseFloat(elements.topPSlider.value) };
             }
         };
-
 
               // --- IndexedDB (相册) 帮助函数 ---
         const DB_NAME = 'AI_Boyfriend_ImageStore';
@@ -1676,26 +1693,31 @@ When the user sends you a transfer, you MUST first respond with a 'text' message
 
         // 只有在点击“保存设置”时，我们才从UI更新这些值。
         // 在普通发消息时，我们使用内存中已有的值，避免了读取不存在元素的错误。
-        const backupData = {
-            version: '1.1',
-            characterSets,
-            groupChats,
-            currentChat,
-            userMomentsProfile,
-            globalSettings: {
-                ...currentGlobalSettings, // 先加载已有的设置
-                apiBaseUrl: elements.apiBaseUrlInput.value, // 这些是安全的，可以随时读取
-                apiKey: elements.apiKeyInput.value,
-                model: elements.modelSelect.value,
-                fontFamily: elements.fontSelect.value,
-                advancedBubbleStyles: elements.advancedBubbleStylesInput.value,
-                temperature: parseFloat(elements.temperatureSlider.value),
-                topP: parseFloat(elements.topPSlider.value),
-                customFontName: elements.customFontNameInput.value,
-                customFontUrl: elements.customFontUrlInput.value,
-                presets: globalPresets
-            }
-        };
+           const backupData = {
+        version: '1.1',
+        characterSets,
+        groupChats,
+        currentChat,
+        userMomentsProfile,
+        globalSettings: {
+            ...currentGlobalSettings,
+            apiBaseUrl: elements.apiBaseUrlInput.value, 
+            apiKey: elements.apiKeyInput.value,
+            model: elements.modelSelect.value,
+            fontFamily: elements.fontSelect.value,
+            advancedBubbleStyles: elements.advancedBubbleStylesInput.value,
+            temperature: parseFloat(elements.temperatureSlider.value),
+            topP: parseFloat(elements.topPSlider.value),
+            customFontName: elements.customFontNameInput.value,
+            customFontUrl: elements.customFontUrlInput.value,
+            presets: globalPresets,
+            // --- 新增的保存代码在这里！ ---
+            uiScale: parseFloat(elements.uiScaleSlider.value) / 100,
+            fontSize: parseInt(elements.fontSizeSlider.value),
+            bubblePadding: parseInt(elements.bubbleSizeSlider.value),
+            realTimeAwareness: elements.realTimeAwarenessToggle.checked
+        }
+    };
         
         const processedData = await processObjectForSaving(backupData);
         localStorage.setItem('aiBoyfriendBackup_v7_meta', JSON.stringify(processedData));
@@ -2102,6 +2124,13 @@ const applyBubbleStyle = (style, character) => {
         };
         
         const addMessageToUI = (msg) => {
+                  // --- 新增代码开始 ---
+        // 如果消息类型是视频通话记录，就不要将它显示在界面上。
+        // 我们返回一个空的文档片段，这样就不会有任何东西被画出来了。
+        if (msg.type === 'video_log') {
+            return document.createDocumentFragment();
+        }
+        // --- 新增代码结束 ---
             const { sender, text, type = 'text', id, imageUrl, stickerUrl, transferAmount, transferMemo, transferCoverUrl, transferStatus, voiceDuration } = msg;
 
             const messageElement = document.createElement('div');
@@ -2183,7 +2212,56 @@ const applyBubbleStyle = (style, character) => {
 
             return messageElement;
         };
-        
+                // 新增的“翻译官”函数，负责将自然语言转换为程序所需的JSON格式
+                // 升级版“翻译官”函数，带有详细的探针
+                       // 升级版“翻译官”函数，作为Plan B使用
+        const convertToJSON = async (naturalLanguageResponse, targetActionType, moment, commentToReply) => {
+            const apiBaseUrl = elements.apiBaseUrlInput.value.trim();
+            const apiKey = elements.apiKeyInput.value.trim();
+            const model = elements.modelSelect.value;
+            if (!apiBaseUrl || !apiKey || !model) { throw new Error("API configuration is missing for JSON conversion."); }
+            const isGemini = apiBaseUrl.includes('google');
+
+            let conversionPrompt = `[Task]: Convert the following natural language text into a single JSON object based on the target action type.
+[Natural Language Text]: "${naturalLanguageResponse}"
+[Target Action Type]: "${targetActionType}"
+[JSON Output Rules]: Your entire response MUST be a single, valid JSON object. Do NOT wrap it in an array ([]). Do NOT include any other text, explanations, or markdown.
+[Example Formats]:
+- For "moment_comment": {"type": "moment_comment", "momentId": "${moment?.id}", "comment_text": "The comment text"}
+- For "moment_reply": {"type": "moment_reply", "momentId": "${moment?.id}", "commentId": "${commentToReply?.id}", "reply_text": "The reply text"}
+[Your JSON output]:`;
+
+            const conversionPayload = {
+                model: model,
+                messages: [{ role: 'user', content: conversionPrompt }],
+                contents: [{ role: 'user', parts: [{ text: conversionPrompt }] }],
+                generationConfig: { "temperature": 0.0 }
+            };
+
+            const fetchUrl = isGemini ? `${apiBaseUrl}/v1beta/models/${model}:generateContent?key=${apiKey}` : `${apiBaseUrl}/v1/chat/completions`;
+            const headers = isGemini ? { 'Content-Type': 'application/json' } : { 'Content-Type': 'application/json', 'Authorization': `Bearer ${apiKey}` };
+
+            const response = await fetch(fetchUrl, {
+                method: 'POST',
+                headers: headers,
+                body: JSON.stringify(isGemini ? { contents: conversionPayload.contents, generationConfig: conversionPayload.generationConfig } : { model: conversionPayload.model, messages: conversionPayload.messages, temperature: 0.0 })
+            });
+            
+            const rawTextResponse = await response.text();
+            if (!response.ok) { throw new Error(`JSON conversion API call failed: ${rawTextResponse}`); }
+
+            let jsonString = rawTextResponse;
+            const parsedData = JSON.parse(rawTextResponse);
+            if (isGemini) {
+                jsonString = parsedData.candidates?.[0]?.content?.parts?.[0]?.text;
+            } else {
+                jsonString = parsedData.choices?.[0]?.message?.content;
+            }
+            if (!jsonString) throw new Error("AI did not return a string for JSON conversion.");
+
+            jsonString = jsonString.replace(/^```json\s*/, '').replace(/\s*```$/, '');
+            return JSON.parse(jsonString);
+        };
         const renderAllMessages = () => {
             const chatData = getCurrentChatData();
             
@@ -2264,8 +2342,8 @@ const applyBubbleStyle = (style, character) => {
             return `\n\n[Recent Social Media Posts (朋友圈动态) for context]:\n${context}`;
         };
 
-        const triggerAiResponse = async () => {
-            elements.receiveBtn.disabled = true; // Prevent spamming
+                                const triggerAiResponse = async () => {
+            elements.receiveBtn.disabled = true;
             const chatData = getCurrentChatData();
             const apiBaseUrl = elements.apiBaseUrlInput.value.trim();
             const apiKey = elements.apiKeyInput.value.trim();
@@ -2273,28 +2351,32 @@ const applyBubbleStyle = (style, character) => {
 
             if (!chatData || isVideoCallActive || !apiBaseUrl || !apiKey || !model) {
                 elements.receiveBtn.disabled = false;
-                return;
+                if (apiBaseUrl.includes('google') && apiKey) {
+                    // Gemini special case where key is in URL, so main field can be empty
+                } else {
+                     return;
+                }
             }
             
-            // TASK 6: Show notification instead of typing indicator
+            const isGemini = apiBaseUrl.includes('google');
             const avatarForNotif = (chatData.config && chatData.config.aiAvatar) ? chatData.config.aiAvatar : (chatData.avatar || '');
             showTopNotification("对方正在快速积极地敲键盘哦…", avatarForNotif, 5000);
 
-
+            // --- 这就是之前被我错误省略掉的、定义 presetsPrompt 的关键代码 ---
             let systemPrompt;
             let history;
-
             const globalSystemPrompt = DEFAULT_SYSTEM_PROMPT;
             const momentsContext = getRecentMomentsContext();
             const activePresets = globalPresets.filter(p => p.enabled && p.content.trim() !== '');
             let presetsPrompt = activePresets.length > 0 ? activePresets.map(p => `[Active Preset: ${p.name || 'Untitled'}]\n${p.content}`).join('\n\n') + '\n\n' : '';
+            // --- 关键代码结束 ---
 
             if (currentChat.type === 'direct') {
                 const character = chatData;
                 const memorySize = character.config.memorySize || 50;
                 systemPrompt = `${presetsPrompt}${globalSystemPrompt}\n\n[Character Prompt]:\n${character.config.characterPrompt}\n\n[Your User's Profile]: ${character.userPrompt || `The user's name is ${userMomentsProfile.name}`}${momentsContext}`;
                 history = character.chatHistory.slice(-memorySize);
-                        } else { // Group chat
+            } else { 
                 const group = chatData;
                 const memorySize = 50;
                 const memberProfiles = group.memberIds.map(id => {
@@ -2305,7 +2387,6 @@ const applyBubbleStyle = (style, character) => {
                 const openPollsInfo = (group.polls || []).filter(p => p.status === 'open').map(p => `\n[Ongoing Poll: "${p.question}" (ID: ${p.pollId})]`).join('');
                 const openRedPacketsInfo = group.chatHistory.filter(m => m.type === 'red-packet' && m.status === 'open').map(p => `\n[Open Red Packet: "${p.memo}" (ID: ${p.packetId})]`).join('');
                 
-                // 【关键修正】重写了整个群聊提示词，并重新加入了核心的 globalSystemPrompt
                 const groupSystemPrompt = `${presetsPrompt}
 ${globalSystemPrompt}
 [!!当前为群聊模式，请遵守以下额外规则!!]
@@ -2337,46 +2418,45 @@ ${openRedPacketsInfo ? `[重要任务]${openRedPacketsInfo} 有一个红包可�
     { "senderId": "char_B_456", "type": "text", "content": "我反对！" },
     { "senderId": "char_B_456", "type": "vote", "pollId": "poll_xyz", "option": "选项2" }
 ]`;
-                systemPrompt = groupSystemPrompt; //  把写好的群聊任务书，正式地放进名叫 systemPrompt 的信封里！
+                systemPrompt = groupSystemPrompt; 
                 history = group.chatHistory.slice(-memorySize);
-            }
-
-                      // 自动日记触发器：检查昨天是否写了日记，如果没写就补上
-            const yesterday = new Date();
-            yesterday.setDate(yesterday.getDate() - 1);
-            const yesterdayString = yesterday.toISOString().slice(0, 10);
-            if (currentChat.type === 'direct') {
-                const character = getCurrentCharacter();
-                if (character && (!character.diary || !character.diary.some(e => e.date === yesterdayString))) {
-                     // 异步触发，不阻塞当前对话
-                    triggerAiDiaryEntry(character, yesterdayString);
-                }
             }
 
             const payload = getApiPayload(model, history, systemPrompt);
             
             try {
-                const response = await fetch(`${apiBaseUrl}/v1/chat/completions`, { 
+                const fetchUrl = isGemini 
+                    ? `${apiBaseUrl}/v1beta/models/${model}:generateContent?key=${apiKey}`
+                    : `${apiBaseUrl}/v1/chat/completions`;
+                const headers = isGemini 
+                    ? { 'Content-Type': 'application/json' }
+                    : { 'Content-Type': 'application/json', 'Authorization': `Bearer ${apiKey}` };
+
+                const response = await fetch(fetchUrl, { 
                     method: 'POST', 
-                    headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${apiKey}` }, 
+                    headers: headers, 
                     body: JSON.stringify(payload) 
                 });
                 
                 if (!response.ok) { const errorData = await response.text(); throw new Error(`HTTP Error ${response.status}: ${errorData}`); }
                 const responseData = await response.json();
                 
+                if (responseData.error) { throw new Error(`API Error: ${responseData.error.message || JSON.stringify(responseData.error)}`); }
+
                 let content = '';
-                const isGemini = apiBaseUrl.includes('google');
                 if (isGemini) {
-                    content = responseData?.candidates?.[0]?.content?.parts?.[0]?.text;
+                    if (!responseData.candidates || responseData.candidates.length === 0) {
+                        const safetyFeedback = responseData.promptFeedback?.blockReason || '未知安全原因';
+                        const finishReason = responseData.candidates?.[0]?.finishReason || '未知';
+                        throw new Error(`Gemini由于 (${safetyFeedback}/${finishReason}) 阻止了回复，请检查您的提示词或API安全设置。`);
+                    }
+                    content = responseData.candidates[0]?.content?.parts?.[0]?.text;
                 } else {
-                    content = responseData?.choices?.[0]?.message?.content;
+                    content = responseData.choices?.[0]?.message?.content;
                 }
 
                 if (content) {
                     processAiResponse(content);
-                } else if (responseData?.error) { 
-                    throw new Error(`API Error: ${responseData.error.message || JSON.stringify(responseData.error)}`);
                 } else { 
                     throw new Error('Invalid or empty API response format.'); 
                 }
@@ -2387,44 +2467,35 @@ ${openRedPacketsInfo ? `[重要任务]${openRedPacketsInfo} 有一个红包可�
             }
         };
         
-        const processAiResponse = (rawText) => {
+                        const processAiResponse = (rawText) => {
             let responseArray = [];
             try {
-                const jsonMatch = rawText.match(/\[\s*\{[\s\S]*?\}\s*\]/s);
-                if (jsonMatch) {
-                    responseArray = JSON.parse(jsonMatch[0]);
+                const cleanedText = rawText.trim().replace(/^```json\s*/, '').replace(/\s*```$/, '');
+                if (cleanedText.startsWith('[') && cleanedText.endsWith(']')) {
+                    responseArray = JSON.parse(cleanedText);
+                } else if (cleanedText.startsWith('{') && cleanedText.endsWith('}')) {
+                    responseArray = [JSON.parse(cleanedText)];
                 } else {
-                    const singleJsonMatch = rawText.match(/\{[\s\S]*\}/);
-                    if(singleJsonMatch) {
-                        responseArray = [JSON.parse(singleJsonMatch[0])];
-                    } else {
-                        throw new Error("No valid JSON found in the response.");
-                    }
+                    throw new Error("Response is not a valid JSON array or object.");
                 }
             } catch (e) {
-                 const jsonObjects = rawText.match(/\{[\s\S]*?\}/g);
-                 if (jsonObjects) {
-                     responseArray = jsonObjects.map(objStr => {
-                         try { return JSON.parse(objStr); } catch (jsonErr) { return null; }
-                     }).filter(Boolean);
+                 console.error("AI响应解析彻底失败。收到的原始文本:", rawText);
+                 addMessage({ sender: 'system', text: `AI响应格式错误，将作为纯文本处理。`, type: 'system' });
+                 const senderId = (currentChat.type === 'direct') ? currentChat.id : null;
+                 if(senderId) {
+                    addMessage({ sender: senderId, type: 'text', text: rawText });
                  }
+                 return;
             }
 
-            if (responseArray.length === 0) {
-                console.error("AI响应解析彻底失败。收到的原始文本:", rawText);
-                addMessage({ sender: 'system', text: `AI响应格式错误，将作为纯文本处理：<pre>${rawText}</pre>`, type: 'system' });
-                const senderId = (currentChat.type === 'direct') ? currentChat.id : null;
-                if(senderId) {
-                   addMessage({ sender: senderId, type: 'text', text: rawText });
-                }
-                return;
-            }
+            if (!Array.isArray(responseArray) || responseArray.length === 0) { return; }
 
             let dataChanged = false;
             let aiMemoryInjections = {}; 
 
             responseArray.forEach(msgObj => {
-                if (!msgObj.type) {
+                // ... (兼容旧格式的代码保持不变) ...
+                 if (!msgObj.type) {
                     if (msgObj.packetId || msgObj.redPacketId) msgObj.type = 'grab_red_packet';
                     else if (msgObj.pollId && msgObj.option) msgObj.type = 'vote';
                     else if (msgObj.will_like === true) msgObj.type = 'moment_like';
@@ -2432,8 +2503,12 @@ ${openRedPacketsInfo ? `[重要任务]${openRedPacketsInfo} 有一个红包可�
                     else if (msgObj.momentId && msgObj.reply_text) msgObj.type = 'moment_reply';
                     else if (msgObj.transferId && msgObj.decision) msgObj.type = 'acknowledge_transfer';
                 }
+
+                // --- 【决定性修复 2：优先使用AI自己的签名】 ---
+                // 只有在AI真的、真的忘了签名的情况下，我们才使用备用方案
                 const senderId = msgObj.senderId || currentChat.id;
                 const momentType = currentChat.type === 'group' ? 'group' : 'direct';
+                
                 switch(msgObj.type) {
                     case 'vote': if (senderId) { handleAiVote_dataOnly(msgObj); dataChanged = true; } break;
                     case 'grab_red_packet':
@@ -2454,21 +2529,29 @@ ${openRedPacketsInfo ? `[重要任务]${openRedPacketsInfo} 有一个红包可�
                     case 'moment_reply': if (senderId && msgObj.momentId && msgObj.reply_text) { addCommentOrReplyByAI('reply', msgObj.momentId, msgObj.reply_text, senderId, msgObj.commentId, momentType); dataChanged = true; } break;
                 }
             });
+
             if (dataChanged) {
                 renderAllMessages();
                 if (elements.momentsOverlay.classList.contains('show')) renderMoments();
             }
+
+            // --- 界面显示部分 (这部分没有逻辑错误，保持原样) ---
             responseArray.forEach((msgObj, index) => {
                 const isAction = ['vote', 'grab_red_packet', 'moment_like', 'moment_comment', 'moment_reply', 'acknowledge_transfer'].includes(msgObj.type);
                 if (isAction) return;
+                
                 if (!msgObj.type && (msgObj.content || msgObj.message)) { msgObj.type = 'text'; msgObj.content = msgObj.content || msgObj.message; }
+                
                 setTimeout(() => {
                     const senderId = msgObj.senderId || currentChat.id;
                     const character = characterSets.find(c => c.id === senderId);
                     if (!character) return;
+                    
                     let llmContentForHistory = (index === 0) ? rawText : null;
                     if (aiMemoryInjections[senderId]) { llmContentForHistory = (llmContentForHistory || '') + '\n' + aiMemoryInjections[senderId]; delete aiMemoryInjections[senderId]; }
+                    
                     let messageData = { sender: senderId, llmContent: llmContentForHistory };
+
                     switch (msgObj.type) {
                         case 'text': addMessage({ ...messageData, text: msgObj.content, type: 'text' }); break;
                         case 'voice': addMessage({ ...messageData, text: msgObj.content, type: 'voice', voiceDuration: `0:${Math.max(1, Math.round((msgObj.content || '').length / 5)).toString().padStart(2, '0')}` }); break;
@@ -2477,7 +2560,16 @@ ${openRedPacketsInfo ? `[重要任务]${openRedPacketsInfo} 有一个红包可�
                         case 'transfer': addMessage({ ...messageData, type: 'transfer', transferAmount: msgObj.amount, transferMemo: msgObj.memo, transferCoverUrl: `https://files.catbox.moe/qwu221.jpg`, transferStatus: 'pending' }); break;
                         case 'video-call-request': if (currentChat.type === 'direct') handleIncomingVideoCall(msgObj.content); break;
                         case 'post_moment': if (character) { const momentType = currentChat.type === 'group' ? 'group' : 'direct'; addMomentByAI(character.id, { content: msgObj.content, image_query: msgObj.image_query }, momentType); } break;
-                        case 'diary_entry': if (character && msgObj.content) addDiaryEntry(character.id, msgObj.content); break;
+                        case 'diary_entry':
+                            if (character && msgObj.content) {
+                                const today = new Date();
+                                const year = today.getFullYear();
+                                const month = String(today.getMonth() + 1).padStart(2, '0');
+                                const day = String(today.getDate()).padStart(2, '0');
+                                const todayString = `${year}-${month}-${day}`;
+                                addDiaryEntry(character.id, msgObj.content, todayString);
+                            }
+                            break;
                     }
                 }, index * 1200 + (dataChanged ? 200 : 0));
             });
@@ -2553,7 +2645,62 @@ ${openRedPacketsInfo ? `[重要任务]${openRedPacketsInfo} 有一个红包可�
         
         // --- Video Call Logic (Fully Isolated) ---
         const addVideoChatMessageToUI = (msg) => { const msgEl = document.createElement('div'); msgEl.className = `video-chat-message ${msg.sender === 'user' ? 'user' : 'ai'}`; msgEl.innerHTML = msg.text.replace(/\*(.*?)\*/g, '<i>$1</i>'); elements.videoChatLog.appendChild(msgEl); scrollToBottom(elements.videoChatLog); };
-        const triggerVideoCallAIResponse = async () => { if (currentChat.type !== 'direct') return; const character = getCurrentCharacter(); if(!character) return; const { config } = character; const apiBaseUrl = elements.apiBaseUrlInput.value.trim(); const apiKey = elements.apiKeyInput.value.trim(); const model = elements.modelSelect.value; if (!apiBaseUrl || !apiKey || !model) return; elements.videoStatusText.textContent = `${config.characterName}正在输入...`; const videoCallSystemPrompt = `${config.characterPrompt}\n[Current Situation: You are in a video call with the user.]\n[Special Instruction]\n- Your entire reply must be plain text, strictly following the format: "*expression or action* dialogue content".\n- Keep the dialogue short and natural, around 20-30 characters.`; const videoHistory = Array.from(elements.videoChatLog.children).map(el => ({ role: el.classList.contains('user') ? 'user' : 'assistant', content: el.textContent })); const messagesPayload = [{ role: 'system', content: videoCallSystemPrompt }, ...videoHistory.slice(-10)]; try { const response = await fetch(`${apiBaseUrl}/v1/chat/completions`, { method: 'POST', headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${apiKey}` }, body: JSON.stringify({ model, messages: messagesPayload }) }); if (!response.ok) throw new Error(`HTTP Error ${response.status}: ${await response.text()}`); const responseData = await response.json(); if (responseData?.choices?.[0]?.message) { addVideoChatMessageToUI({ sender: character.id, text: responseData.choices[0].message.content }); elements.videoStatusText.textContent = "通话中"; } else { throw new Error('Invalid video call API response format.'); } } catch (error) { addVideoChatMessageToUI({ sender: character.id, text: `(连接错误)` }); elements.videoStatusText.textContent = "连接错误"; } };
+                        const triggerVideoCallAIResponse = async () => {
+            if (currentChat.type !== 'direct') return;
+            const character = getCurrentCharacter();
+            if(!character) return;
+            const { config } = character;
+            const apiBaseUrl = elements.apiBaseUrlInput.value.trim();
+            const apiKey = elements.apiKeyInput.value.trim();
+            const model = elements.modelSelect.value;
+            const isGemini = apiBaseUrl.includes('google');
+
+            if (!apiBaseUrl || !apiKey || !model) return;
+            
+            elements.videoStatusText.textContent = `${config.characterName}正在输入...`;
+            const videoCallSystemPrompt = `${config.characterPrompt}\n[Current Situation: You are in a video call with the user.]\n[Special Instruction]\n- Your entire reply must be plain text, strictly following the format: "*expression or action* dialogue content".\n- Keep the dialogue short and natural, around 20-30 characters.`;
+            const videoHistory = Array.from(elements.videoChatLog.children).map(el => ({ role: el.classList.contains('user') ? 'user' : 'assistant', content: el.textContent }));
+            
+            const historyForPayload = videoHistory.slice(-10).map(msg => ({
+                sender: msg.role === 'user' ? 'user' : 'ai',
+                text: msg.content
+            }));
+            const payload = getApiPayload(model, historyForPayload, videoCallSystemPrompt);
+
+            try {
+                const fetchUrl = isGemini
+                    ? `${apiBaseUrl}/v1beta/models/${model}:generateContent?key=${apiKey}`
+                    : `${apiBaseUrl}/v1/chat/completions`;
+                const headers = isGemini
+                    ? { 'Content-Type': 'application/json' }
+                    : { 'Content-Type': 'application/json', 'Authorization': `Bearer ${apiKey}` };
+
+                const response = await fetch(fetchUrl, { method: 'POST', headers: headers, body: JSON.stringify(payload) });
+
+                if (!response.ok) throw new Error(`HTTP Error ${response.status}: ${await response.text()}`);
+                const responseData = await response.json();
+                
+                if (responseData.error) { throw new Error(`API Error: ${responseData.error.message || JSON.stringify(responseData.error)}`); }
+
+                let content = '';
+                if (isGemini) {
+                    if (!responseData.candidates || responseData.candidates.length === 0) { throw new Error(`Gemini由于安全原因阻止了回复。`); }
+                    content = responseData.candidates[0]?.content?.parts?.[0]?.text;
+                } else {
+                    content = responseData.choices?.[0]?.message?.content;
+                }
+
+                if (content) {
+                    addVideoChatMessageToUI({ sender: character.id, text: content });
+                    elements.videoStatusText.textContent = "通话中";
+                } else {
+                    throw new Error('Invalid video call API response format.');
+                }
+            } catch (error) {
+                addVideoChatMessageToUI({ sender: character.id, text: `(连接错误: ${error.message})` });
+                elements.videoStatusText.textContent = "连接错误";
+            }
+        };
         const startVideoCall = () => { if (currentChat.type !== 'direct') return; const character = getCurrentCharacter(); if(!character) return; const { config } = character; const apiBaseUrl = elements.apiBaseUrlInput.value.trim(); const apiKey = elements.apiKeyInput.value.trim(); const model = elements.modelSelect.value; if (!apiBaseUrl || !apiKey || !model) { alert('请先在设置中填写API信息。'); return; } isVideoCallActive = true; elements.videoMainView.src = config.aiAvatar; elements.videoSelfView.src = userMomentsProfile.chatAvatar; elements.videoCharacterAvatar.src = config.aiAvatar; elements.videoCharacterName.textContent = config.characterName; elements.videoStatusText.textContent = "正在呼叫..."; elements.videoChatLog.innerHTML = ''; elements.videoControls.innerHTML = `<button class="video-btn decline"><svg viewBox="0 0 24 24"><path d="M12 9c-1.6 0-3.15.25-4.62.72v3.1c0 .39-.23.74-.56.9-.98.49-1.87 1.1-2.69 1.8l-1.1-1.1c.99-.99 2.1-1.82 3.31-2.48C7.06 10.72 9.03 10 12 10c.05 0 .1 0 .16.01l2.4-2.4C13.84 7.23 12.95 7 12 7c-4.97 0-9 4.03-9 9H0c0-6.08 4.92-11 11-11 .34 0 .67.02 1 .05l-1.43 1.43C12.21 9.02 12.11 9 12 9zM1.39 4.22l2.27 2.27C2.63 7.62 2 8.91 2 10.31v3.1c1.53-.69 3.23-1.14 5.08-1.28l3.43 3.43c-3.11.3-6.01 1.54-7.96 3.4l1.41 1.41c2.19-2.19 5.08-3.48 8.04-3.83l2.84 2.84c.32.32.88.1.88-.36V13.5c.75-.24 1.46-.56 2.12-.95l2.07 2.07 1.41-1.41L2.81 2.81 1.39 4.22zM21 5h-2.59l4.59 4.59-1.41 1.41L12 1.41 2.81 11.59l-1.41-1.41L6 5.59V5h2v.59l4-4 4 4V5h2v3.41l2.29-2.29C23.36 5.64 22.25 5 21 5z"/></svg></button>`; elements.videoControls.querySelector('.decline').onclick = endVideoCall; elements.videoCallOverlay.classList.add('show'); addVideoChatMessageToUI({ sender: 'user', text: '[发起视频通话]' }); triggerVideoCallAIResponse(); };
         const handleIncomingVideoCall = (text) => { if (currentChat.type !== 'direct') return; const { config } = getCurrentCharacter(); elements.videoMainView.src = config.aiAvatar; elements.videoSelfView.src = userMomentsProfile.chatAvatar; elements.videoCharacterAvatar.src = config.aiAvatar; elements.videoCharacterName.textContent = config.characterName; elements.videoStatusText.textContent = text || "视频来电..."; elements.videoChatLog.innerHTML = ''; elements.videoControls.innerHTML = `<button class="video-btn accept"><svg viewBox="0 0 24 24"><path d="M20.01 15.38c-1.23 0-2.42-.2-3.53-.56-.35-.12-.74-.03-1.01.24l-1.57 1.97c-2.83-1.35-5.21-3.72-6.56-6.56l1.97-1.57c.27-.27.36-.66.24-1.01-.37-1.11-.56-2.3-.56-3.53 0-.54-.45-.99-.99-.99H4.19c-.55 0-.99.45-.99.99 0 9.02 7.38 16.4 16.4 16.4.55 0 .99-.45.99-.99v-3.47c0-.54-.45-.99-.99-.99z"/></svg></button> <button class="video-btn decline"><svg viewBox="0 0 24 24"><path d="M12 9c-1.6 0-3.15.25-4.62.72v3.1c0 .39-.23.74-.56.9-.98.49-1.87 1.1-2.69 1.8l-1.1-1.1c.99-.99 2.1-1.82 3.31-2.48C7.06 10.72 9.03 10 12 10c.05 0 .1 0 .16.01l2.4-2.4C13.84 7.23 12.95 7 12 7c-4.97 0-9 4.03-9 9H0c0-6.08 4.92-11 11-11 .34 0 .67.02 1 .05l-1.43 1.43C12.21 9.02 12.11 9 12 9zM1.39 4.22l2.27 2.27C2.63 7.62 2 8.91 2 10.31v3.1c1.53-.69 3.23-1.14 5.08-1.28l3.43 3.43c-3.11.3-6.01 1.54-7.96 3.4l1.41 1.41c2.19-2.19 5.08-3.48 8.04-3.83l2.84 2.84c.32.32.88.1.88-.36V13.5c.75-.24 1.46-.56 2.12-.95l2.07 2.07 1.41-1.41L2.81 2.81 1.39 4.22zM21 5h-2.59l4.59 4.59-1.41 1.41L12 1.41 2.81 11.59l-1.41-1.41L6 5.59V5h2v.59l4-4 4 4V5h2v3.41l2.29-2.29C23.36 5.64 22.25 5 21 5z"/></svg></button>`; elements.videoControls.querySelector('.accept').onclick = () => { isVideoCallActive = true; elements.videoStatusText.textContent = "已接通"; elements.videoControls.innerHTML = elements.videoControls.innerHTML.replace(/<button class="video-btn accept">.*?<\/button>/, ''); addVideoChatMessageToUI({sender:'user', text:'[接听了视频通话]'}); triggerVideoCallAIResponse(); }; elements.videoControls.querySelector('.decline').onclick = () => { elements.videoCallOverlay.classList.remove('show'); }; elements.videoCallOverlay.classList.add('show'); };
         const endVideoCall = () => {
@@ -2580,7 +2727,7 @@ ${openRedPacketsInfo ? `[重要任务]${openRedPacketsInfo} 有一个红包可�
 			elements.videoCallOverlay.classList.remove('show');
 		};
         
-        const showMindVoice = async () => {
+                        const showMindVoice = async () => {
             if (currentChat.type !== 'direct') return;
             const character = getCurrentCharacter();
             if (!character) return;
@@ -2588,6 +2735,8 @@ ${openRedPacketsInfo ? `[重要任务]${openRedPacketsInfo} 有一个红包可�
             const apiBaseUrl = elements.apiBaseUrlInput.value.trim();
             const apiKey = elements.apiKeyInput.value.trim();
             const model = elements.modelSelect.value;
+            const isGemini = apiBaseUrl.includes('google');
+
             if (!apiBaseUrl || !apiKey || !model) {
                 elements.mindVoiceContent.textContent = '请先在设置中填写API信息。';
                 elements.mindVoiceModal.classList.add('show');
@@ -2610,26 +2759,37 @@ ${openRedPacketsInfo ? `[重要任务]${openRedPacketsInfo} 有一个红包可�
             const payload = getApiPayload(model, chatHistory.slice(-config.memorySize), mindVoiceSystemPrompt);
 
             try {
-                const response = await fetch(`${apiBaseUrl}/v1/chat/completions`, { 
-                    method: 'POST', 
-                    headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${apiKey}` }, 
-                    body: JSON.stringify(payload) 
+                const fetchUrl = isGemini
+                    ? `${apiBaseUrl}/v1beta/models/${model}:generateContent?key=${apiKey}`
+                    : `${apiBaseUrl}/v1/chat/completions`;
+                const headers = isGemini
+                    ? { 'Content-Type': 'application/json' }
+                    : { 'Content-Type': 'application/json', 'Authorization': `Bearer ${apiKey}` };
+
+                const response = await fetch(fetchUrl, {
+                    method: 'POST',
+                    headers: headers,
+                    body: JSON.stringify(payload)
                 });
+
                 if (!response.ok) throw new Error(`服务器错误 ${response.status}: ${await response.text()}`);
                 const responseData = await response.json();
                 
+                if (responseData.error) { throw new Error(`API返回错误: ${responseData.error.message || JSON.stringify(responseData.error)}`); }
+
                 let content = '';
-                const isGemini = apiBaseUrl.includes('google');
                 if (isGemini) {
-                    content = responseData?.candidates?.[0]?.content?.parts?.[0]?.text;
+                    if (!responseData.candidates || responseData.candidates.length === 0) {
+                        const safetyFeedback = responseData.promptFeedback?.blockReason || '未知';
+                        throw new Error(`Gemini由于安全原因 (${safetyFeedback}) 阻止了回复。`);
+                    }
+                    content = responseData.candidates[0]?.content?.parts?.[0]?.text;
                 } else {
-                    content = responseData?.choices?.[0]?.message?.content;
+                    content = responseData.choices?.[0]?.message?.content;
                 }
 
                 if (content) {
                     elements.mindVoiceContent.textContent = content;
-                } else if (responseData.error) {
-                    throw new Error(`API返回错误: ${responseData.error.message}`);
                 } else {
                     throw new Error('API没有返回有效的心声内容。');
                 }
@@ -2846,70 +3006,118 @@ ${openRedPacketsInfo ? `[重要任务]${openRedPacketsInfo} 有一个红包可�
         }, (i + 1) * 4000 + Math.random() * 2000); 
     }
 };
-            const triggerAiMomentComment = async (moment, commenterId, momentType) => {
-                const apiBaseUrl = elements.apiBaseUrlInput.value.trim();
-                const apiKey = elements.apiKeyInput.value.trim();
-                const model = elements.modelSelect.value;
-                const commenterChar = characterSets.find(c => c.id === commenterId);
-                if (!apiBaseUrl || !apiKey || !model || !commenterChar) return;
-                
-                const postedByChar = characterSets.find(c => c.id === moment.senderId);
-                const postedBy = moment.senderId === 'user' ? (userMomentsProfile.name || '我') : (postedByChar?.config.characterName || '一位朋友');
-                const imageContext = moment.imageUrl ? "这条动态还配有一张图片。" : "这条动态没有配图。";
-                
-                const prompt = `[角色]: 你是 ${commenterChar.config.characterName} (ID: ${commenterId})。你的性格是: ${commenterChar.config.characterPrompt}
-[情景]: ${postedBy} 刚刚发了条朋友圈，内容是: "${moment.content}"。${imageContext}
-[任务]: 根据你的性格、和发帖人的关系，以及帖子的图文内容，写一条自然的、口语化的中文评论。
-[输出格式]: 你的回复必须是JSON数组，里面只包含一个对象，像这样:
-[{"type": "moment_comment", "momentId": "${moment.id}", "comment_text": "你的评论内容"}]
-绝对不要在JSON数组前后添加任何多余的文字。`;
-                const payload = getApiPayload(model, [], prompt);
+                                                                                                                                                const triggerAiMomentComment = async (moment, commenterId, momentType) => {
                 try {
-                    const response = await fetch(`${apiBaseUrl}/v1/chat/completions`, { method: 'POST', headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${apiKey}` }, body: JSON.stringify(payload) });
-                    if (!response.ok) { console.error("AI comment failed: ", await response.text()); return; }
-                    const responseData = await response.json();
-                    if (responseData?.choices?.[0]?.message?.content) {
-                        let parsed;
-                        try { 
-                            const jsonMatch = responseData.choices[0].message.content.match(/\[\s*\{.*\}\s*\]/s);
-                            parsed = JSON.parse(jsonMatch ? jsonMatch[0] : responseData.choices[0].message.content);
-                        } catch (e) { return; }
-                        const action = parsed[0];
-                        if (action && action.type === 'moment_comment' && action.comment_text) {
-                            addCommentOrReplyByAI('comment', moment.id, action.comment_text, commenterId, null, momentType);
-                        }
+                    const commenterChar = characterSets.find(c => c.id === commenterId);
+                    if (!commenterChar) return;
+                    
+                    const postedByChar = characterSets.find(c => c.id === moment.senderId);
+                    const postedBy = moment.senderId === 'user' ? (userMomentsProfile.name || '我') : (postedByChar?.config.characterName || '一位朋友');
+                    
+                    const chatData = getCurrentChatData();
+                    const recentHistory = chatData ? chatData.chatHistory.slice(-5) : [];
+                    const historyContext = recentHistory.map(msg => `${msg.sender === 'user' ? 'User' : 'AI'}: ${msg.text || '(非文本消息)'}`).join('\n');
+                    
+                    const finalPrompt = `[Role]: You are ${commenterChar.config.characterName}. Your persona is: ${commenterChar.config.characterPrompt}
+[Recent Conversation Context]:
+${historyContext}
+[Current Situation]: You see a social media post from ${postedBy}. The post says: "${moment.content}".
+[Task]: Based on ALL the information above (your persona and the recent conversation), write a short, natural, first-person comment in Simplified Chinese in response to this post.
+[CRITICAL OUTPUT FORMAT]: Your entire response MUST be a valid JSON array containing a single object, like this example:
+[{"type": "moment_comment", "momentId": "${moment.id}", "comment_text": "Your actual comment text here."}]
+Do NOT leave the comment_text empty. Do NOT add any text, markdown, or explanations outside the JSON array.`;
+
+                    const payload = getApiPayload(elements.modelSelect.value, [], finalPrompt);
+                    const apiBaseUrl = elements.apiBaseUrlInput.value.trim();
+                    const apiKey = elements.apiKeyInput.value.trim();
+                    const model = elements.modelSelect.value;
+                    const isGemini = apiBaseUrl.includes('google');
+                    const fetchUrl = isGemini ? `${apiBaseUrl}/v1beta/models/${model}:generateContent?key=${apiKey}` : `${apiBaseUrl}/v1/chat/completions`;
+                    const headers = isGemini ? { 'Content-Type': 'application/json' } : { 'Content-Type': 'application/json', 'Authorization': `Bearer ${apiKey}` };
+
+                    const response = await fetch(fetchUrl, { method: 'POST', headers: headers, body: JSON.stringify(payload) });
+                    const rawText = await response.text();
+                    if (!response.ok) throw new Error(`API请求失败，官方报告 Status Code: ${response.status}`);
+
+                    const responseData = JSON.parse(rawText);
+                    let aiResponseText = '';
+                    if (isGemini) {
+                        if (!responseData.candidates || responseData.candidates.length === 0) { throw new Error("Gemini的candidates列表为空。"); }
+                        aiResponseText = responseData.candidates[0].content.parts.map(part => part.text || '').join('');
+                    } else {
+                        aiResponseText = responseData.choices?.[0]?.message?.content;
                     }
-                } catch (error) { console.error("Moment comment AI trigger error:", error); }
+
+                    if (!aiResponseText) { throw new Error("AI的响应中没有有效的文本内容。"); }
+
+                    // --- 【决定性修复】 ---
+                    // 在解析前，清理所有前后看不见的空格和换行符
+                    const cleanedJsonString = aiResponseText.trim().replace(/^```json\s*/, '').replace(/\s*```$/, '');
+                    // --- 修复结束 ---
+
+                    const jsonAction = JSON.parse(cleanedJsonString);
+
+                    if (jsonAction && Array.isArray(jsonAction) && jsonAction[0] && jsonAction[0].type === 'moment_comment' && jsonAction[0].comment_text && jsonAction[0].comment_text.trim() !== "") {
+                        addCommentOrReplyByAI('comment', moment.id, jsonAction[0].comment_text, commenterId, null, momentType);
+                    } else {
+                        console.error("最终解析出的JSON无效或内容为空。", jsonAction);
+                    }
+                } catch (error) { 
+                    console.error("【重大错误】Moment comment AI trigger error:", error); 
+                }
             };
-
-            const triggerAiMomentReply = async (moment, commentToReply, replierId, momentType) => {
-                const apiBaseUrl = elements.apiBaseUrlInput.value.trim();
-                const apiKey = elements.apiKeyInput.value.trim();
-                const model = elements.modelSelect.value;
-                const replierChar = characterSets.find(c => c.id === replierId);
-                if (!apiBaseUrl || !apiKey || !model || !replierChar) return;
-                
-                const originalPosterChar = characterSets.find(c => c.id === moment.senderId);
-                const originalPosterName = moment.senderId === 'user' ? (userMomentsProfile.name || '我') : (originalPosterChar?.config.characterName || '一位朋友');
-                
-                const personBeingRepliedToChar = characterSets.find(c => c.id === commentToReply.sender);
-                const personBeingRepliedToName = commentToReply.sender === 'user' ? (userMomentsProfile.name || '我') : (personBeingRepliedToChar?.config.characterName || '一位朋友');
-
-                const prompt = `[角色]: 你是 ${replierChar.config.characterName} (ID: ${replierId})。你的性格是: ${replierChar.config.characterPrompt}。
-[情景]: 在 ${originalPosterName} 发表的朋友圈（内容为：“${moment.content}”）下方，${personBeingRepliedToName} 评论说：“${commentToReply.text}”。
-[任务]: 现在轮到你回复 ${personBeingRepliedToName} 的这条评论。你的回复必须自然、口语化，并要结合原帖和评论的内容。
-[输出格式]: 你的回复必须是JSON数组，里面只包含一个对象，像这样:
-[{"type": "moment_reply", "momentId": "${moment.id}", "commentId": "${commentToReply.id}", "reply_text": "你的回复内容"}]
-绝对不要在JSON数组前后添加任何多余的文字。`;
-                const payload = getApiPayload(model, [], prompt);
+                                                                                                                                                const triggerAiMomentReply = async (moment, commentToReply, replierId, momentType) => {
                 try {
-                    const response = await fetch(`${apiBaseUrl}/v1/chat/completions`, { method: 'POST', headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${apiKey}` }, body: JSON.stringify(payload) });
-                    if (!response.ok) { console.error("AI回复评论失败: ", await response.text()); return; }
-                    const responseData = await response.json();
-                     if (responseData?.choices?.[0]?.message?.content) {
-                        processAiResponse(responseData.choices[0].message.content);
+                    const replierChar = characterSets.find(c => c.id === replierId);
+                    if (!replierChar) return;
+
+                    const originalPosterName = characterSets.find(c => c.id === moment.senderId)?.config.characterName || (userMomentsProfile.name || '我');
+                    const personBeingRepliedToName = characterSets.find(c => c.id === commentToReply.sender)?.config.characterName || (userMomentsProfile.name || '我');
+                    const chatData = getCurrentChatData();
+                    const recentHistory = chatData ? chatData.chatHistory.slice(-5) : [];
+                    const historyContext = recentHistory.map(msg => `${msg.sender === 'user' ? 'User' : 'AI'}: ${msg.text || '(非文本消息)'}`).join('\n');
+                    
+                    // --- 【决定性修复 1：强制AI签名】 ---
+                    const finalPrompt = `[Role]: You are ${replierChar.config.characterName} (ID: ${replierId}). Your persona is: ${replierChar.config.characterPrompt}
+[Recent Conversation Context]:
+${historyContext}
+[Current Situation]: On ${originalPosterName}'s social media post, ${personBeingRepliedToName} left a comment saying: "${commentToReply.text}".
+[Task]: Now, write a short, natural, first-person reply in Simplified Chinese to ${personBeingRepliedToName}'s comment.
+[CRITICAL OUTPUT FORMAT]: Your entire response MUST be a valid JSON array containing a single object. It MUST include your own senderId. Example:
+[{"senderId": "${replierId}", "type": "moment_reply", "momentId": "${moment.id}", "commentId": "${commentToReply.id}", "reply_text": "Your actual reply text here."}]
+Do NOT leave the reply_text empty. Do NOT add any text, markdown, or explanations outside the JSON array.`;
+                    
+                    const payload = getApiPayload(elements.modelSelect.value, [], finalPrompt);
+                    const apiBaseUrl = elements.apiBaseUrlInput.value.trim();
+                    const apiKey = elements.apiKeyInput.value.trim();
+                    const model = elements.modelSelect.value;
+                    const isGemini = apiBaseUrl.includes('google');
+                    const fetchUrl = isGemini ? `${apiBaseUrl}/v1beta/models/${model}:generateContent?key=${apiKey}` : `${apiBaseUrl}/v1/chat/completions`;
+                    const headers = isGemini ? { 'Content-Type': 'application/json' } : { 'Content-Type': 'application/json', 'Authorization': `Bearer ${apiKey}` };
+                    
+                    const response = await fetch(fetchUrl, { method: 'POST', headers: headers, body: JSON.stringify(payload) });
+                    const rawText = await response.text();
+                    if (!response.ok) throw new Error(`API请求失败: ${rawText}`);
+
+                    const responseData = JSON.parse(rawText);
+                    let aiResponseText = '';
+                    if (isGemini) {
+                        if (!responseData.candidates) { throw new Error("Gemini的candidates列表为空。"); }
+                        aiResponseText = responseData.candidates[0].content.parts.map(part => part.text || '').join('');
+                    } else {
+                        aiResponseText = responseData.choices?.[0]?.message?.content;
                     }
-                } catch (error) { console.error("AI触发回复时出错:", error); }
+
+                    if (!aiResponseText) { throw new Error("AI的响应中没有有效的文本内容。"); }
+                    
+                    const cleanedJsonString = aiResponseText.trim().replace(/^```json\s*/, '').replace(/\s*```$/, '');
+                    
+                    // 直接将带有正确senderId的JSON交给总管处理
+                    processAiResponse(cleanedJsonString);
+                    
+                } catch (error) { 
+                    console.error("【重大错误】AI trigger reply error:", error); 
+                }
             };
             
         const openMoments = () => { renderMoments(); elements.momentsOverlay.classList.add('show'); };
@@ -3076,31 +3284,38 @@ ${openRedPacketsInfo ? `[重要任务]${openRedPacketsInfo} 有一个红包可�
             </div>`;
     };
         
-            const renderComments = (comments, post, isReply = false) => {
-        if (!comments || comments.length === 0) return '';
-        const containerClass = isReply ? 'replies' : '';
-        return `<div class="${containerClass}">
-            ${comments.map(comment => {
-                // TASK 11: Correctly find character for comment
-                const commenterChar = comment.sender !== 'user' ? characterSets.find(char => char.id === comment.sender) : null;
-                const commenterName = comment.sender === 'user' ? userMomentsProfile.name : commenterChar?.config.characterName || '一位朋友';
-                
-                const repliedToChar = comment.replyTo ? characterSets.find(c => c.id === comment.replyTo) : null;
-                const repliedToUser = comment.replyTo ? (comment.replyTo === 'user' ? userMomentsProfile.name : repliedToChar?.config.characterName || '一位朋友') : null;
+                           const renderComments = (comments, post, isReply = false) => {
+            if (!comments || comments.length === 0) return '';
+            const containerClass = isReply ? 'replies' : '';
+            return `<div class="${containerClass}">
+                ${comments.map(comment => {
+                    // --- 查找“评论者”的名字 ---
+                    const commenterChar = characterSets.find(char => char.id === comment.sender);
+                    const commenterName = comment.sender === 'user' 
+                        ? (userMomentsProfile.name || '我') 
+                        : (commenterChar?.config.characterName || '一位朋友');
 
-                return `
-                    <div class="comment" data-comment-id="${comment.id}" data-sender-id="${comment.sender}">
-                        <span class="comment-user">${commenterName}</span>
-                        ${repliedToUser ? ` <span style="color: #555;">回复</span> <span class="comment-user">${repliedToUser}</span>` : ''}:
-                        <span class="comment-text">${comment.text}</span>
-                        <button class="delete-comment-btn" title="删除评论" style="background:none; border:none; color:#aaa; cursor:pointer; font-size:1.2em; padding: 0 5px;">×</button>
-                        ${renderComments(comment.replies, post, true)}
-                    </div>
-                `;
-            }).join('')}
-        </div>`;
-    };
+                    // --- 用同样严谨的逻辑，查找“被回复者”的名字 ---
+                    let repliedToName = null;
+                    if (comment.replyTo) {
+                        const repliedToChar = characterSets.find(char => char.id === comment.replyTo);
+                        repliedToName = comment.replyTo === 'user' 
+                            ? (userMomentsProfile.name || '我') 
+                            : (repliedToChar?.config.characterName || '一位朋友');
+                    }
 
+                    return `
+                        <div class="comment" data-comment-id="${comment.id}" data-sender-id="${comment.sender}">
+                            <span class="comment-user">${commenterName}</span>
+                            ${repliedToName ? ` <span style="color: #555;">回复</span> <span class="comment-user">${repliedToName}</span>` : ''}:
+                            <span class="comment-text">${comment.text}</span>
+                            <button class="delete-comment-btn" title="删除评论" style="background:none; border:none; color:#aaa; cursor:pointer; font-size:1.2em; padding: 0 5px;">×</button>
+                            ${renderComments(comment.replies, post, true)}
+                        </div>
+                    `;
+                }).join('')}
+            </div>`;
+        };
         const addCommentOrReplyByAI = (type, momentId, text, senderId, targetCommentId, momentType) => {
     let momentSource;
     if (momentType === 'direct') {
@@ -3271,49 +3486,59 @@ ${openRedPacketsInfo ? `[重要任务]${openRedPacketsInfo} 有一个红包可�
 
         // --- Diary Logic ---
         const openDiaryModal = async () => { if (currentChat.type !== 'direct') return; const character = getCurrentCharacter(); if (!character) return; elements.diaryHeader.textContent = `${character.config.characterName}的日记本`; renderDiary(character); elements.diaryModal.classList.add('show'); };
-        const triggerAiDiaryEntry = async (character, date) => {
+                                                                const triggerAiDiaryEntry = async (character, date) => {
             try {
-                 const { config, chatHistory } = character;
+                const { config, chatHistory } = character;
+                
+                 const recentHistory = chatHistory.slice(-10);
+                 const historyContext = recentHistory.map(msg => `${msg.sender === 'user' ? 'User' : 'AI'}: ${msg.text || '(非文本消息)'}`).join('\n');
+                 
+                 const finalPrompt = `[Role]: You are ${config.characterName}. Your persona is: ${config.characterPrompt}
+[Recent Conversation Context for today, ${date}]:
+${historyContext}
+[Task]: Based on ALL the information above (your persona and the recent conversation), write a short, natural, first-person diary entry in Simplified Chinese reflecting on the day's events and feelings.
+[CRITICAL OUTPUT FORMAT]: Your entire response MUST be a valid JSON array containing a single object, like this example:
+[{"type": "diary_entry", "content": "Your actual diary text here."}]
+Do NOT leave the content empty. Do NOT add any text, markdown, or explanations outside the JSON array.`;
+
+                const payload = getApiPayload(elements.modelSelect.value, [], finalPrompt);
                 const apiBaseUrl = elements.apiBaseUrlInput.value.trim();
                 const apiKey = elements.apiKeyInput.value.trim();
                 const model = elements.modelSelect.value;
-                if (!apiBaseUrl || !apiKey || !model) {
-                    elements.diaryEntries.innerHTML = '<p>请先在设置中填写API信息。</p>';
-                    return;
+                const isGemini = apiBaseUrl.includes('google');
+                const fetchUrl = isGemini ? `${apiBaseUrl}/v1beta/models/${model}:generateContent?key=${apiKey}` : `${apiBaseUrl}/v1/chat/completions`;
+                const headers = isGemini ? { 'Content-Type': 'application/json' } : { 'Content-Type': 'application/json', 'Authorization': `Bearer ${apiKey}` };
+                
+                const response = await fetch(fetchUrl, { method: 'POST', headers: headers, body: JSON.stringify(payload) });
+                const rawText = await response.text();
+                if (!response.ok) throw new Error(`API请求失败，官方报告 Status Code: ${response.status}`);
+
+                const responseData = JSON.parse(rawText);
+                let aiResponseText = '';
+                if (isGemini) {
+                    if (!responseData.candidates || responseData.candidates.length === 0) { throw new Error("Gemini的candidates列表为空。"); }
+                    aiResponseText = responseData.candidates[0].content.parts.map(part => part.text || '').join('');
+                } else {
+                    aiResponseText = responseData.choices?.[0]?.message?.content;
                 }
 
-                const prompt = `[Role]: You are ${config.characterName}.
-[Task]: It is the end of the day (${date}). Based on your conversations with the user today, write a short diary entry in Simplified Chinese, reflecting on your feelings and the day's events. Your personality must be consistent.
-[CRITICAL: Output Format]: Your response MUST be a JSON array containing a single object like this:
-[{"type": "diary_entry", "content": "Your diary content here."}]
-ABSOLUTELY NO other text, markdown, or explanations outside the JSON array.`;
+                if (!aiResponseText) { throw new Error("AI的响应中没有有效的文本内容。"); }
                 
-                const payload = getApiPayload(model, chatHistory.slice(-config.memorySize), prompt);
-                const response = await fetch(`${apiBaseUrl}/v1/chat/completions`, { method: 'POST', headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${apiKey}` }, body: JSON.stringify(payload) });
-                if (!response.ok) throw new Error(`服务器返回错误: ${await response.text()}`);
-                const responseData = await response.json();
-                let rawContent = '';
-                const isGemini = apiBaseUrl.includes('google');
-                if (isGemini) { rawContent = responseData?.candidates?.[0]?.content?.parts?.[0]?.text; } 
-                else { rawContent = responseData?.choices?.[0]?.message?.content; }
+                // --- 【这，就是那唯一、但却决定性的修复】 ---
+                const cleanedJsonString = aiResponseText.trim().replace(/^```json\s*/, '').replace(/\s*```$/, '');
+                // --- 修复结束 ---
                 
-                if (rawContent) {
-                    let diaryText = null;
-                    try {
-                        const jsonMatch = rawContent.match(/\[\s*\{[\s\S]*?\}\s*\]/s);
-                        const parsed = JSON.parse(jsonMatch ? jsonMatch[0] : rawContent);
-                        const action = Array.isArray(parsed) ? parsed[0] : parsed;
-                        if (action && action.type === 'diary_entry' && action.content) {
-                            diaryText = action.content;
-                        }
-                    } catch (e) { diaryText = rawContent.replace(/^```json\s*/, '').replace(/```$/, '').trim(); }
-                    if (diaryText) addDiaryEntry(character.id, diaryText, date);
-                    else throw new Error('API返回了有效但空的响应。');
-                } else if (responseData.error) {
-                    throw new Error(`API返回错误: ${responseData.error.message}`);
+                const jsonAction = JSON.parse(cleanedJsonString);
+
+                if (jsonAction && Array.isArray(jsonAction) && jsonAction[0] && jsonAction[0].type === 'diary_entry' && jsonAction[0].content && jsonAction[0].content.trim() !== "") {
+                    addDiaryEntry(character.id, jsonAction[0].content, date);
+                } else {
+                    console.error("最终解析出的JSON无效或内容为空。", jsonAction);
                 }
             } catch (e) {
-                console.error("写日记时出错:", e);
+                console.error("【重大错误】写日记时出错:", e);
+                const entryEl = elements.diaryEntries.querySelector(`.diary-entry[data-date="${date}"] .diary-content`);
+                if(entryEl) entryEl.textContent = `重写失败: ${e.message}`;
             }
         };
         const addDiaryEntry = (characterId, content, date) => {
@@ -3329,7 +3554,7 @@ ABSOLUTELY NO other text, markdown, or explanations outside the JSON array.`;
             saveAllData();
             if (elements.diaryModal.classList.contains('show')) renderDiary(character);
         };
-        const renderDiary = (character) => {
+                const renderDiary = (character) => {
             const entries = (character.diary || []).sort((a,b) => new Date(b.date) - new Date(a.date));
             if (entries.length === 0) {
                  elements.diaryEntries.innerHTML = '<p style="text-align:center; color:#999;">日记本还是空的。</p>';
@@ -3338,6 +3563,7 @@ ABSOLUTELY NO other text, markdown, or explanations outside the JSON array.`;
                     <div class="diary-entry" data-date="${entry.date}">
                         <div class="diary-date">${entry.date}</div>
                         <div class="diary-content">${entry.content.replace(/\n/g, '<br>')}</div>
+                        <button class="diary-regenerate-btn" title="为这一天重写日记">✏️</button>
                         <button class="diary-delete-btn" title="删除这篇日记">×</button>
                     </div>
                 `).join('');
@@ -3357,7 +3583,17 @@ ABSOLUTELY NO other text, markdown, or explanations outside the JSON array.`;
             }
             await triggerAiDiaryEntry(character, date);
         };
-
+        const handleRegenerateDiaryEntry = async (date) => {
+            if (!confirm(`您确定要让AI为 ${date} 重写一篇日记吗？原来的内容将会被覆盖。`)) return;
+            const character = getCurrentCharacter();
+            if (!character) return;
+            const entryEl = elements.diaryEntries.querySelector(`.diary-entry[data-date="${date}"]`);
+            if (entryEl) {
+                const contentEl = entryEl.querySelector('.diary-content');
+                if(contentEl) contentEl.innerHTML = '正在重写中...';
+            }
+            await triggerAiDiaryEntry(character, date);
+        };
 
         // --- Data Import/Export ---
         const exportData = async () => { await saveCurrentSettings(); await saveAllData(); const data = localStorage.getItem('aiBoyfriendBackup_v7_meta'); const blob = new Blob([data], {type: 'application/json'}); const url = URL.createObjectURL(blob); const a = document.createElement('a'); a.href = url; a.download = `ai_boyfriend_backup_${new Date().toISOString().slice(0,10)}.json`; document.body.appendChild(a); a.click(); document.body.removeChild(a); URL.revokeObjectURL(url); alert('全部数据已导出！'); };
@@ -3476,11 +3712,16 @@ const migrateDataToV7 = (oldData) => {
                   elements.diaryModalCloseBtn.onclick = () => closeModal(elements.diaryModal);
                   
                   // TASK 2: Add event listener for diary deletion
+                                      // --- 升级后的日记事件监听器 ---
                    elements.diaryEntries.addEventListener('click', (e) => {
-                       const deleteBtn = e.target.closest('.diary-delete-btn');
-                       if (deleteBtn) {
-                           const entryEl = deleteBtn.closest('.diary-entry');
-                           if (entryEl) handleDeleteDiaryEntry(entryEl.dataset.date);
+                       const entryEl = e.target.closest('.diary-entry');
+                       if (!entryEl) return;
+                       
+                       const date = entryEl.dataset.date;
+                       if (e.target.closest('.diary-delete-btn')) {
+                           handleDeleteDiaryEntry(date);
+                       } else if (e.target.closest('.diary-regenerate-btn')) {
+                           handleRegenerateDiaryEntry(date);
                        }
                    });
 
@@ -3495,7 +3736,47 @@ const migrateDataToV7 = (oldData) => {
                   elements.actionSendSticker.onclick = () => { handleStickerSend(); toggleActionPanel(true); };
                   elements.actionVideoCall.onclick = () => { startVideoCall(); toggleActionPanel(true); };
                   elements.actionCreatePoll.onclick = () => { openCreatePollModal(); toggleActionPanel(true); };
-                  elements.fetchModelsBtn.onclick = async () => { const baseUrl = elements.apiBaseUrlInput.value.trim(); const apiKey = elements.apiKeyInput.value.trim(); if (!baseUrl || !apiKey) { alert('请输入API端点和API密钥'); return; } elements.fetchModelsBtn.textContent = '获取中...'; elements.fetchModelsBtn.disabled = true; try { const response = await fetch(`${baseUrl}/v1/models`, { headers: { 'Authorization': `Bearer ${apiKey}` } }); if (!response.ok) throw new Error(`获取模型列表失败, Status: ${response.status} ${await response.text()}`); const data = await response.json(); elements.modelSelect.innerHTML = ''; const models = data.data || data.models || data; if (!Array.isArray(models)) throw new Error('API返回的模型列表格式不正确'); models.sort((a, b) => (a.id || a.name).localeCompare(b.id || b.name)).forEach(model => { const modelId = model.id || model.name; if (modelId) elements.modelSelect.add(new Option(modelId, modelId)); }); const currentModel = elements.modelSelect.value; if(currentModel) elements.modelSelect.value = currentModel; } catch (error) { alert(`获取模型失败: ${error.message}`); } finally { elements.fetchModelsBtn.textContent = '获取模型列表'; elements.fetchModelsBtn.disabled = false; } };
+                                                      elements.fetchModelsBtn.onclick = async () => {
+                      const baseUrl = elements.apiBaseUrlInput.value.trim();
+                      const apiKey = elements.apiKeyInput.value.trim();
+                      if (!baseUrl || !apiKey) { alert('请输入API端点和API密钥'); return; }
+                      elements.fetchModelsBtn.textContent = '获取中...';
+                      elements.fetchModelsBtn.disabled = true;
+                      try {
+                          const isGemini = baseUrl.includes('google');
+                          // 智能拼接URL
+                          const fetchUrl = isGemini ? `${baseUrl}/v1beta/models?key=${apiKey}` : `${baseUrl}/v1/models`;
+                          const headers = isGemini ? {} : { 'Authorization': `Bearer ${apiKey}` };
+                          
+                          const response = await fetch(fetchUrl, { headers });
+                          if (!response.ok) throw new Error(`获取模型列表失败, Status: ${response.status} ${await response.text()}`);
+                          
+                          const data = await response.json();
+                          elements.modelSelect.innerHTML = '';
+                          
+                          const models = data.models || data.data || data;
+                          if (!Array.isArray(models)) throw new Error('API返回的模型列表格式不正确');
+                          
+                          models.forEach(model => {
+                              const modelId = model.name ? model.name.replace('models/', '') : model.id;
+                              if (modelId) {
+                                  if(isGemini && model.supportedGenerationMethods?.includes('generateContent') && modelId.startsWith('gemini')) {
+                                      elements.modelSelect.add(new Option(modelId, modelId));
+                                  } else if (!isGemini) {
+                                      elements.modelSelect.add(new Option(modelId, modelId));
+                                  }
+                              }
+                          });
+                          const currentModel = elements.modelSelect.value;
+                          if(currentModel) elements.modelSelect.value = currentModel;
+
+                      } catch (error) {
+                          alert(`获取模型失败: ${error.message}`);
+                      } finally {
+                          elements.fetchModelsBtn.textContent = '获取模型列表';
+                          elements.fetchModelsBtn.disabled = false;
+                      }
+                  };
                   elements.themeSelector.onclick = (e) => { const t = e.target.closest('.theme-option'); if (t) applyTheme(t.dataset.theme, getCurrentChatData()); };
                   elements.fontSelect.addEventListener('change', () => applyFont(elements.fontSelect.value));   
                   const avatarCompression = { compress: true, quality: 0.7, maxWidth: 300, maxHeight: 300 };
