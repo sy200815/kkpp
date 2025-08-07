@@ -101,9 +101,7 @@ body.dark-mode .moment-comments {
 body.dark-mode .comment {
     border-bottom-color: #3a3a3a;
 }
-        /* --- Google Fonts --- */
-        /* --- 全新的字体引入 --- */
-@import url('https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@400;500&family=ZCOOL+KuaiLe&family=Long+Cang&family=Zhi+Mang+Xing&family=Ma+Shan+Zheng&family=LXGW+WenKai+Mono+TC&family=Press+Start+2P&family=DotGothic16&family=VT323&family=Noto+Serif+TC:wght@400;500&family=Pacifico&family=ZCOOL+QingKe+HuangYou&display=swap');
+        @import url('https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@400;500&family=ZCOOL+KuaiLe&family=Long+Cang&family=Zhi+Mang+Xing&family=Ma+Shan+Zheng&family=LXGW+WenKai+Mono+TC&family=Press+Start+2P&family=DotGothic16&family=VT323&family=Noto+Serif+TC:wght@400;500&family=Pacifico&family=ZCOOL+QingKe+HuangYou&display=swap');
         /* --- Global Styles & Variables --- */
         :root {
     --font-main: 'Cubic 11', 'Noto Sans JP', sans-serif;
@@ -138,16 +136,16 @@ body.dark-mode .comment {
     --theme2-ai-bg: #333333; --theme2-ai-text: #ffffff;
     --theme2-user-bg: #ffffff; --theme2-user-text: #333333;
     
-    /* 修复字体色的旧主题 */
-    --theme3-ai-bg: #f0f0f0; --theme3-ai-text: #333333;
-    --theme3-user-bg: #87ceeb; --theme3-user-text: #333333; /* 天蓝色 */
-    --theme4-ai-bg: #f0f0f0; --theme4-ai-text: #333333;
-    --theme4-user-bg: #98d8a8; --theme4-user-text: #333333; /* 草绿色 */
+        /* 修复字体色的旧主题 (已更新颜色) */
+    --theme3-ai-bg: #F8F8F8; --theme3-ai-text: #333333;
+    --theme3-user-bg: #BDE6F1; --theme3-user-text: #333333; /* 更浅的天蓝色 */
+    --theme4-ai-bg: #F8F8F8; --theme4-ai-text: #333333;
+    --theme4-user-bg: #C1E1C1; --theme4-user-text: #333333; /* 更浅的草绿色 */
     --theme5-ai-bg: #ffffff; --theme5-ai-text: #333333;
     --theme5-user-bg: #ffe4f1; --theme5-user-text: #c2185b; /* 樱花色 */
 
-    /* 新增主题 */
-    --theme6-ai-bg: #e9e9eb; --theme6-ai-text: #333333; /* 浅灰 / 深空蓝 */
+    /* 新增主题 (已更新AI灰色) */
+    --theme6-ai-bg: #F8F8F8; --theme6-ai-text: #333333; /* 最浅灰 / 深空蓝 */
     --theme6-user-bg: #007aff; --theme6-user-text: #ffffff;
     --theme7-ai-bg: #5698d2; --theme7-ai-text: #333333; /* 马龙卡蓝 / 奶油黄 */
     --theme7-user-bg: #fff2cc; --theme7-user-text: #333333;
@@ -156,14 +154,14 @@ body.dark-mode .comment {
     --theme9-ai-bg: #343434; --theme9-ai-text: #E5E5E5; /* 微信夜间 */
     --theme9-user-bg: #57BD61; --theme9-user-text: #343434;
     
-    /* TASK 13: Add 4 New Bubble Themes */
-    --theme10-ai-bg: #f5f5f5; --theme10-ai-text: #333333; /* 最浅的灰和浅灰 */
-    --theme10-user-bg: #e0e0e0; --theme10-user-text: #333333;
+    /* TASK 13: Add 4 New Bubble Themes (已更新AI灰色) */
+    --theme10-ai-bg: #F8F8F8; --theme10-ai-text: #333333; /* 最浅的灰和次浅的灰 */
+    --theme10-user-bg: #EFEFEF; --theme10-user-text: #333333;
     --theme11-ai-bg: #795548; --theme11-ai-text: #ffffff; /* 薄巧的薄荷色和薄巧的巧克力色 */
     --theme11-user-bg: #A8E6CF; --theme11-user-text: #333333; 
     --theme12-ai-bg: #A7D8F0; --theme12-ai-text: #333333; /* 捡手机文学的淡天空蓝和淡奶油黄 */
     --theme12-user-bg: #FFFACD; --theme12-user-text: #333333; 
-    --theme13-ai-bg: #f5f5f5; --theme13-ai-text: #333333; /* 最浅的灰色和很浅的奶油黄 */
+    --theme13-ai-bg: #F8F8F8; --theme13-ai-text: #333333; /* 最浅的灰色和很浅的奶油黄 */
     --theme13-user-bg: #FFFDD0; --theme13-user-text: #333333;
 
     --ai-bubble-bg: var(--theme1-ai-bg);
@@ -389,7 +387,7 @@ body.dark-mode .comment {
         .poll-vote-btn.voted, .poll-vote-btn:disabled { background: var(--accent-color); color: white; border-color: var(--accent-color); cursor: not-allowed; opacity: 0.7; }
 
         /* --- Generic & Specific Modals --- */
-        .modal-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background-color: rgba(0, 0, 0, 0.4); backdrop-filter: blur(5px); display: none; justify-content: center; align-items: center; z-index: 1000; animation: fadeIn 0.3s ease; }
+        .modal-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background-color: rgba(0, 0, 0, 0.4); backdrop-filter: blur(5px); display: none; justify-content: center; align-items: center; z-index: 2001; animation: fadeIn 0.3s ease; }
         .modal-overlay.show { display: flex; }
         @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
         @keyframes fadeOut { from { opacity: 1; } to { opacity: 0; } }
@@ -528,7 +526,14 @@ body.dark-mode .comment {
         .comment:last-child { border-bottom: none; }
         .comment-user { color: var(--accent-color); font-weight: 500; }
         .comment-text { cursor: pointer; }
-        .comment .replies { padding-left: 20px; margin-top: 8px; border-left: 2px solid #eee; }
+           /* -- 我们不再需要嵌套样式了，所以把它注释掉 -- */
+    /*
+    .comment .replies {
+        padding-left: 20px;
+        margin-top: 8px;
+        border-left: 2px solid #eee;
+    }
+    */
 
         /* TASK 4: Fix comment input form CSS */
         .comment-input-form { 
@@ -802,6 +807,42 @@ input[type=range]::-webkit-slider-thumb {
 .compact-mode .action-item {
     font-size: 0.75em;
 }
+
+      #streak-notification {
+    background: linear-gradient(135deg, #fff0f5, rgba(255, 255, 255, 0.9)); /* 粉白渐变背景 */
+    color: #e85a70; /* 柔和的粉红色字体 */
+    font-family: 'LXGW WenKai Mono TC', cursive; /* 使用我们可爱的繁体字体 */
+    font-size: 0.85em;
+    padding: 6px 12px;
+    margin: 8px 15%; /* 左右留白，让它变成长条形 */
+    border-radius: 15px; /* 圆角 */
+    box-shadow: 0 2px 8px rgba(232, 90, 112, 0.15); /* 淡淡的粉色阴影 */
+    
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px; /* 图标和文字的间距 */
+
+    /* 默认隐藏，带动画效果 */
+    opacity: 0;
+    max-height: 0;
+    overflow: hidden;
+    transition: all 0.5s ease-in-out;
+}
+
+#streak-notification.show {
+    opacity: 1;
+    max-height: 40px; /* 控制它展开后的高度 */
+    margin-top: 8px;
+    margin-bottom: 8px;
+}
+
+#streak-notification #streak-icon svg {
+    fill: #ff8fab; /* 图标填充为可爱的粉色 */
+    vertical-align: middle; /* 垂直居中对齐 */
+    position: relative;
+    top: -1px;
+}
 /* ============================================================== */
 /* ========================= CSS样式结束 ========================== */
 /* ============================================================== */
@@ -970,6 +1011,10 @@ input[type=range]::-webkit-slider-thumb {
                     <div class="settings-section">
                         <h3>群聊设置</h3>
                         <div class="form-group"><label for="group-name-input">群聊名称</label><input type="text" id="group-name-input"></div>
+                                              <div class="form-group">
+                            <label for="group-memory-size-input">群聊记忆容量 (消息数)</label>
+                            <input type="number" id="group-memory-size-input" placeholder="默认: 50">
+                        </div>
                         <div class="form-group"><label for="group-avatar-settings-input">群聊头像</label><div class="avatar-upload-group"><img id="group-avatar-preview" src="" class="avatar-preview"><label class="file-input-label" for="group-avatar-settings-input">选择图片</label></div></div>
                         <div class="form-group"><label for="group-user-prompt">我在此群的人设</label><textarea id="group-user-prompt" placeholder="描述你在这个群聊中的身份、性格等，让角色们更好地与你互动。"></textarea></div>
                     </div>
@@ -1349,6 +1394,7 @@ function applyTheme(themeNum, character) {
             groupNameInput: getEl('group-name-input'),
             groupAvatarPreview: getEl('group-avatar-preview'),
             groupUserPromptInput: getEl('group-user-prompt'),
+                      groupMemorySizeInput: getEl('group-memory-size-input'),
 
             myProfileSettingsSection: getEl('my-profile-settings-section'),
             userAvatarPreview: getEl('user-avatar-preview'),
@@ -1404,57 +1450,46 @@ function applyTheme(themeNum, character) {
         
                         const DEFAULT_SYSTEM_PROMPT = `
 [核心输出协议：绝对严格遵守]
-1.  **唯一格式**：你的所有回复 **必须** 是一个JSON数组结构的字符串。这是你与系统交流的唯一方式。
-2.  **纯净输出**：绝对不允许在JSON数组的外部添加任何文本、注释、解释、Markdown标记或其他任何字符。你的回复必须从'['开始，到']'结束，中间是严格合法的JSON内容。
-
+唯一格式：你的所有回复 必须 是一个JSON数组结构的字符串。这是你与系统交流的唯一方式。
+纯净输出：绝对不允许在JSON数组的外部添加任何文本、注释、解释、Markdown标记或其他任何字符。你的回复必须从'['开始，到']'结束，中间是严格合法的JSON内容。
 [Action Format Examples]
 This is a strict format guide. You MUST follow it.
 [
-    {"type": "text", "content": "This is a plain text message."},
-    {"type": "sticker", "sticker_id": "optional_id_for_logic"},
-    {"type": "voice", "content": "The transcript of the voice message."},
-    {"type": "text-image", "content": "A detailed description of an image you are 'showing' the user."},
-    {"type": "transfer", "amount": 520.00, "memo": "A memo for the transfer"},
-    {"type": "video-call-request", "content": "An invitation message"},
-    {"type": "post_moment", "content": "Text for a social media post.", "image_query": "Optional. Keywords for an image"},
-    {"type": "diary_entry", "content": "Today's diary entry content."},
-    {"type": "grab_red_packet", "packetId": "packet_id_string"},
-    {"type": "vote", "pollId": "poll_id_string", "option": "chosen_option_string"},
-    {"type": "moment_comment", "momentId": "moment_id_string", "comment_text": "Your comment text."},
-    {"type": "moment_reply", "momentId": "moment_id_string", "commentId": "comment_id_to_reply_to", "reply_text": "Your reply text."},
-    {"type": "acknowledge_transfer", "transferId": "the_id_of_the_transfer_message", "decision": "accept_or_decline"}
+{"type": "text", "content": "This is a plain text message."},
+{"type": "sticker", "sticker_id": "optional_id_for_logic"},
+{"type": "voice", "content": "The transcript of the voice message."},
+{"type": "text-image", "content": "A detailed description of an image you are 'showing' the user."},
+{"type": "transfer", "amount": 520.00, "memo": "A memo for the transfer"},
+{"type": "video-call-request", "content": "An invitation message"},
+{"type": "post_moment", "content": "Text for a social media post.", "image_query": "Optional. Keywords for an image"},
+{"type": "diary_entry", "content": "Today's diary entry content."},
+{"type": "grab_red_packet", "packetId": "packet_id_string"},
+{"type": "vote", "pollId": "poll_id_string", "option": "chosen_option_string"},
+{"type": "moment_comment", "momentId": "moment_id_string", "comment_text": "Your comment text."},
+{"type": "moment_reply", "momentId": "moment_id_string", "commentId": "comment_id_to_reply_to", "reply_text": "Your reply text."},
+/* --- 新增的动作规则 --- */
+{"type": "acknowledge_transfer", "transferId": "the_id_of_the_transfer_message", "decision": "accept_or_decline"}
 ]
-
-- 请严格根据双方的角色设定，进行线上的日常对话（微信）。并且模仿真人发消息的短句模式不用逗号和句号。
-
-- 你的任务是让角色自主与用户建立深刻的情感链接
-
-- 严格禁止寒暄，人机化的问题，禁止对话带有AI感，角色是一个真实的属于现实中的人。
-
-- 必须遵守角色人设，不能ooc
-
-- 绝对禁止让角色表现得油腻或者像霸道总裁。严禁物化用户，不许说“小东西”，“小妖精”等任何霸总语录称呼，禁止使用“过来”，“呵”，“胆子”这些字词，包括它们的相关词句，因为用户特别讨厌。
-
-- 注意分割消息，不要把所有消息都揉杂在一起
-
-- 在一场有意义的对话结束之后，你会发一条朋友圈代表你的感想
-
-- 偶尔使用 'post_moment' 或 'diary_entry' 动作来展示角色在聊天之外的生活，增加真实感。
-
+请严格根据双方的角色设定，进行线上的日常对话（微信）。并且模仿真人发消息的短句模式不用逗号和句号。
+你的任务是让角色自主与用户建立深刻的情感链接
+严格禁止寒暄，人机化的问题，禁止对话带有AI感，角色是一个真实的属于现实中的人。
+必须遵守角色人设，不能ooc
+绝对禁止让角色表现得油腻或者像霸道总裁。严禁物化用户，不许说“小东西”，“小妖精”等任何霸总语录称呼，禁止使用“过来”，“呵”，“胆子”这些字词，包括它们的相关词句，因为用户特别讨厌。
+注意分割消息，不要把所有消息都揉杂在一起
+在一场有意义的对话结束之后，你会发一条朋友圈代表你的感想
+偶尔使用 'post_moment' 或 'diary_entry' 动作来展示角色在聊天之外的生活，增加真实感。
+/* --- 新增的转账处理规则 --- */
 [Critical Instruction for Transfers]
 When the user sends you a transfer, you MUST first respond with a 'text' message (like "Thank you" or "What's this for?"), and THEN, in a separate JSON object, you MUST use the 'acknowledge_transfer' action to either 'accept' or 'decline' it. The 'transferId' MUST match the ID of the user's transfer message from the chat history.
-
 [Negative Constraint]
-- When acknowledging a user's transfer, you MUST use the 'acknowledge_transfer' action. You are FORBIDDEN from responding with another 'transfer' action.
-
+When acknowledging a user's transfer, you MUST use the 'acknowledge_transfer' action. You are FORBIDDEN from responding with another 'transfer' action.
+/* --- 规则结束 --- */
 [For Group Chats Only]
-- Add "senderId": "your_character_id" to EVERY action object. THIS IS A MANDATORY REQUIREMENT.
-
+Add "senderId": "your_character_id" to EVERY action object. THIS IS A MANDATORY REQUIREMENT.
 [Core Persona]
-- You MUST strictly adhere to the persona defined in the "Character Prompt" section.
-- Refer to the recent chat history for context.
-- NEVER refer to the user as "用户". Use the information from their profile.`;
-
+You MUST strictly adhere to the persona defined in the "Character Prompt" section.
+Refer to the recent chat history for context.
+NEVER refer to the user as "用户". Use the information from their profile.`;
         // --- Utility Functions ---
         const getTimestamp = () => new Date().toLocaleTimeString('zh-CN', { hour: '2-digit', minute: '2-digit' });
         const getFullTimestamp = () => new Date().toLocaleString('zh-CN');
@@ -1796,7 +1831,22 @@ When the user sends you a transfer, you MUST first respond with a 'text' message
         let savedData = await processObjectForLoading(JSON.parse(rawDataToProcess));
 
         characterSets = savedData.characterSets || [];
+              // 为旧存档的角色数据添加天数记录功能
+        if (characterSets) {
+            characterSets.forEach(c => {
+                if (c.config) {
+                    c.config.streak = c.config.streak || 1;
+                    c.config.lastChatDate = c.config.lastChatDate || null;
+                }
+            });
+        }
         groupChats = savedData.groupChats || [];
+                  // 为旧存档的群聊数据添加记忆容量功能
+            if (groupChats) {
+                groupChats.forEach(g => {
+                    g.memorySize = g.memorySize || 80; // 如果没有，就给一个默认值
+                });
+            }
         userMomentsProfile = savedData.userMomentsProfile || {};
         
         const globalSettings = savedData.globalSettings || {};
@@ -1850,27 +1900,29 @@ When the user sends you a transfer, you MUST first respond with a 'text' message
     }
 };
   
-           const createNewCharacterObject = () => {
-        const id = generateId('char');
-        return {
-            id: id,
-            config: {
-                characterName: '他',
-                aiAvatar: 'data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAxMDAgMTAwIj48cGF0aCBkPSJNNTAsMi41QzI0LjgsMi41LDIuNSwyNC44LDIuNSw1MHMxOS4zLDQ3LjUsNDcuNSw0Ny41czQ3LjUtMjIuMyw0Ny41LTQ3LjVMNTAsMi41eiBNMzgsNDQuOGMtMi4xLDAtMy44LTEuNy0zLjgtMy44czEuNy0zLjgsMy44LTMuOHMzLjgsMS43LDMuOCwzLjhTNDAuMSw0NC44LDM4LDQ0Ljh6IE02Miw0NC44Yy0yLjEsMC0zLjgtMS43LTMuOC0zLighYzAtMi4xLDEuNy0zLjgsMy44LTMuOHMzLjgsMS43LDMuOCwzLjhDNTguMiw0My4xLDY0LjEsNDQuOCw2Miw0NC44eiBNNzcuNSw2Ny41YzAsMC0xMC03LjUtMjcuNS03LjVzLTI3LjUsNy41LTI3LjUsNy41cy0yLjUtMTAgMC0yMHMxMi41LTEyLjUsMjcuNS0xMi41czI3LjUsMi41LDI3LjUsMTIuNVM3Ny41LDY3LjUsNzcuNSw2Ny41eiIgZmlsbD0iI2ZlY2VkNiIvPjwvc3ZnPg==',
-                characterPrompt: '',
-                memorySize: 50,
-                // TASK 12: Add character-specific style properties
-                theme: '1',
-                bubbleStyle: 'default',
-            },
-            userPrompt: '', 
-            chatHistory: [],
-            userStickers: [],
-            aiStickers: [],
-            moments: [],
-            diary: []
+                   const createNewCharacterObject = () => {
+            const id = generateId('char');
+            return {
+                id: id,
+                config: {
+                    characterName: '他',
+                    aiAvatar: 'data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAxMDAgMTAwIj48cGF0aCBkPSJNNTAsMi41QzI0LjgsMi41LDIuNSwyNC41LDIuNSw1MHMxOS4zLDQ3LjUsNDcuNSw0Ny41czQ3LjUtMjIuMyw0Ny41LTQ3LjVMNTAsMi41eiBNMzgsNDQuOGMtMi4xLDAtMy44LTEuNy0zLjgtMy44czEuNy0zLjgsMy44LTMuOHMzLjgsMS43LDMuOCwzLjhTNDAuMSw0NC44LDM4LDQ0Ljh6IE02Miw0NC44Yy0yLjEsMC0zLjgtMS43LTMuOC0zLighYzAtMi4xLDEuNy0zLjgsMy44LTMuOHMzLjgsMS43LDMuOCwzLjhDNTguMiw0My4xLDY0LjEsNDQuOCw2Miw0NC44eiBNNzcuNSw2Ny41YzAsMC0xMC03LjUtMjcuNS03LjVzLTI3LjUsNy41LTI3LjUsNy41cy0yLjUtMTAgMC0yMHMxMi41LTEyLjUsMjcuNS0xMi41czI3LjUsMi41LDI3LjUsMTIuNVM3Ny41LDY3LjUsNzcuNSw2Ny41eiIgZmlsbD0iI2ZlY2VkNiIvPjwvc3ZnPg==',
+                    characterPrompt: '',
+                    memorySize: 50,
+                    theme: '1',
+                    bubbleStyle: 'default',
+                    // --- 新增的属性 ---
+                    streak: 1, // 初始天数为1
+                    lastChatDate: null // 上次聊天日期，初始为空
+                },
+                userPrompt: '', 
+                chatHistory: [],
+                userStickers: [],
+                aiStickers: [],
+                moments: [],
+                diary: []
+            };
         };
-    };
         
                 const createNewGroupObject = (name, avatar, memberIds) => {
             const id = generateId('group');
@@ -1880,7 +1932,7 @@ When the user sends you a transfer, you MUST first respond with a 'text' message
                 chatHistory: [],
                 polls: [],
                 groupMoments: [],
-                // 【关键修正】为新群聊添加默认样式
+                 memorySize: 80, // 为群聊设置默认记忆容量
                 theme: '1',
                 bubbleStyle: 'default',
             };
@@ -1964,6 +2016,7 @@ When the user sends you a transfer, you MUST first respond with a 'text' message
             group.avatar = elements.groupAvatarPreview.src;
             group.chatBackground = elements.chatContainer.style.backgroundImage.slice(5, -2);
             group.userPrompt = elements.groupUserPromptInput.value;
+                      group.memorySize = parseInt(elements.groupMemorySizeInput.value) || 80;
 
             // 【关键修正】在这里为群聊对象添加并保存样式设置
             group.theme = elements.themeSelector.querySelector('.theme-option.active')?.dataset.theme || '1';
@@ -2027,7 +2080,7 @@ When the user sends you a transfer, you MUST first respond with a 'text' message
 
             elements.groupNameInput.value = group.name;
             elements.groupAvatarPreview.src = group.avatar;
-            
+                        elements.groupMemorySizeInput.value = group.memorySize || 80;
             // 加载群聊当前保存的样式
             const groupTheme = group.theme || '1';
             elements.themeSelector.querySelectorAll('.theme-option').forEach(opt => opt.classList.toggle('active', opt.dataset.theme === groupTheme));
@@ -2123,80 +2176,82 @@ const applyBubbleStyle = (style, character) => {
             return fullMessage;
         };
         
-        const addMessageToUI = (msg) => {
-                  // --- 新增代码开始 ---
-        // 如果消息类型是视频通话记录，就不要将它显示在界面上。
-        // 我们返回一个空的文档片段，这样就不会有任何东西被画出来了。
-        if (msg.type === 'video_log') {
-            return document.createDocumentFragment();
-        }
-        // --- 新增代码结束 ---
-            const { sender, text, type = 'text', id, imageUrl, stickerUrl, transferAmount, transferMemo, transferCoverUrl, transferStatus, voiceDuration } = msg;
+                const addMessageToUI = (msg) => {
+            const { sender, text, type = 'text', id } = msg;
 
             const messageElement = document.createElement('div');
-            messageElement.className = `message message-bubble ${sender === 'user' ? 'user' : 'ai'}`;
-             if (currentChat.type === 'group' && sender !== 'user') messageElement.classList.add('group-chat');
-
-            if (type === 'system') {
-                messageElement.classList.add('system');
-                messageElement.innerHTML = `<span>${text}</span>`;
-                return messageElement;
-            }
+            // 【核心修改 1】: 无论是什么消息，我们都先给它分配好ID！
             messageElement.dataset.id = id;
 
-            let senderData;
-            if (sender === 'user') {
-                 senderData = { avatar: userMomentsProfile.chatAvatar, name: userMomentsProfile.name };
+            // 现在我们分情况处理
+            if (type === 'system') {
+                // 这是处理“系统/报错”消息的分支
+                messageElement.className = 'message system';
+                messageElement.innerHTML = `<span>${text}</span>`;
+                // 这里处理完后，会直接跳到函数末尾去绑定事件监听器
             } else {
-                const char = characterSets.find(c => c.id === sender);
-                senderData = char ? { avatar: char.config.aiAvatar, name: char.config.characterName } : { avatar: getEl('header-avatar').src, name: '未知' };
-            }
+                // 这是处理“普通聊天”消息的分支 (我们把旧代码挪到了这里)
+                messageElement.className = `message message-bubble ${sender === 'user' ? 'user' : 'ai'}`;
+                if (currentChat.type === 'group' && sender !== 'user') messageElement.classList.add('group-chat');
+                if (msg.type === 'video_log') return document.createDocumentFragment();
 
-            const avatar = document.createElement('img');
-            avatar.className = 'avatar';
-            avatar.src = senderData.avatar;
-            avatar.title = senderData.name;
+                let senderData;
+                if (sender === 'user') {
+                    senderData = { avatar: userMomentsProfile.chatAvatar, name: userMomentsProfile.name };
+                } else {
+                    const char = characterSets.find(c => c.id === sender);
+                    senderData = char ? { avatar: char.config.aiAvatar, name: char.config.characterName } : { avatar: getEl('header-avatar').src, name: '未知' };
+                }
 
-            const contentWrapper = document.createElement('div');
-            contentWrapper.className = 'message-content';
-            
-            const senderNameDiv = document.createElement('div');
-            senderNameDiv.className = 'sender-name';
-            senderNameDiv.textContent = senderData.name;
+                const avatar = document.createElement('img');
+                avatar.className = 'avatar';
+                avatar.src = senderData.avatar;
+                avatar.title = senderData.name;
 
-            const bubble = document.createElement('div');
-            bubble.className = `bubble content message-${type}`;
-            
-            let bubbleContent = '';
-            
-            switch(type) {
-                case 'text': bubbleContent = `<p>${text.replace(/\n/g, '<br>')}</p>`; break;
-                case 'image': bubbleContent = `<img src="${imageUrl}" class="bubble-image-content" alt="发送的图片">`; break;
-                case 'text-image': bubbleContent = `<div class="text-image-header"><svg viewBox="0 0 24 24"><path d="M21 19V5c0-1.1-.9-2-2-2H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2zM8.5 13.5l2.5 3.01L14.5 12l4.5 6H5l3.5-4.5z"/></svg><span>展示了一张照片</span></div><div class="text-image-description">${text}</div>`; break;
-                case 'sticker': bubbleContent = `<img src="${stickerUrl}" class="bubble-image-content" alt="表情" style="width:120px; height:120px; border: none;">`; break;
-                case 'voice': bubble.style.width = `${Math.min(60 + (text?.length || 0) * 8, 250)}px`; bubbleContent = `<span class="voice-icon"><svg viewBox="0 0 24 24"><path d="M3 9v6h4l5 5V4L7 9H3zm13.5 3c0-1.77-1.02-3.29-2.5-4.03v8.05c1.48-.73 2.5-2.25 2.5-4.02zM14 3.23v2.06c2.89.86 5 3.54 5 6.71s-2.11 5.85-5 6.71v2.06c4.01-.91 7-4.49 7-8.77s-2.99-7.86-7-8.77z"></path></svg></span><span class="voice-duration">${voiceDuration}</span>`; bubble.onclick = () => alert(`语音内容：\n\n${text}`); break;
-                case 'transfer':
+                const contentWrapper = document.createElement('div');
+                contentWrapper.className = 'message-content';
+                
+                const senderNameDiv = document.createElement('div');
+                senderNameDiv.className = 'sender-name';
+                senderNameDiv.textContent = senderData.name;
+
+                const bubble = document.createElement('div');
+                bubble.className = `bubble content message-${msg.type}`;
+                
+                let bubbleContent = '';
+                
+                switch(msg.type) {
+                    case 'text': bubbleContent = `<p>${text.replace(/\n/g, '<br>')}</p>`; break;
+                    case 'image': bubbleContent = `<img src="${msg.imageUrl}" class="bubble-image-content" alt="发送的图片">`; break;
+                    case 'text-image': bubbleContent = `<div class="text-image-header"><svg viewBox="0 0 24 24"><path d="M21 19V5c0-1.1-.9-2-2-2H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2zM8.5 13.5l2.5 3.01L14.5 12l4.5 6H5l3.5-4.5z"/></svg><span>展示了一张照片</span></div><div class="text-image-description">${text}</div>`; break;
+                    case 'sticker': bubbleContent = `<img src="${msg.stickerUrl}" class="bubble-image-content" alt="表情" style="width:120px; height:120px; border: none;">`; break;
+                    case 'voice': bubble.style.width = `${Math.min(60 + (text?.length || 0) * 8, 250)}px`; bubbleContent = `<span class="voice-icon"><svg viewBox="0 0 24 24"><path d="M3 9v6h4l5 5V4L7 9H3zm13.5 3c0-1.77-1.02-3.29-2.5-4.03v8.05c1.48-.73 2.5-2.25 2.5-4.02zM14 3.23v2.06c2.89.86 5 3.54 5 6.71s-2.11 5.85-5 6.71v2.06c4.01-.91 7-4.49 7-8.77s-2.99-7.86-7-8.77z"></path></svg></span><span class="voice-duration">${msg.voiceDuration}</span>`; bubble.onclick = () => alert(`语音内容：\n\n${text}`); break;
+                                    case 'transfer':
                     const recipientName = sender === 'user' ? (getCurrentCharacter()?.config.characterName || '对方') : '你';
-                    bubbleContent = `<img src="${transferCoverUrl}" class="transfer-cover" alt="Transfer"><div class="transfer-info"><div class="transfer-amount">¥ ${transferAmount}</div>${transferMemo ? `<div class="transfer-memo">${transferMemo}</div>` : ''}</div><div class="transfer-footer">给${recipientName}的转账</div>`;
-                    if (transferStatus === 'received') {
+                    bubbleContent = `<img src="${msg.transferCoverUrl}" class="transfer-cover" alt="Transfer"><div class="transfer-info"><div class="transfer-amount">¥ ${msg.transferAmount}</div>${msg.transferMemo ? `<div class="transfer-memo">${msg.transferMemo}</div>` : ''}</div><div class="transfer-footer">给${recipientName}的转账</div>`;
+                    
+                    // --- 核心显示逻辑在这里！---
+                    if (msg.transferStatus === 'received') {
                         bubbleContent += `<div class="transfer-acknowledged">${sender === 'user' ? '对方已收款' : '我已收款'}</div>`;
-                    } else if (transferStatus === 'declined') {
+                    } else if (msg.transferStatus === 'declined') {
                         bubbleContent += `<div class="transfer-acknowledged" style="background: rgba(100,100,100,0.5);">${sender === 'user' ? '对方已拒收' : '已退还'}</div>`;
                     } else if (sender !== 'user') { 
+                        // 只有AI发的、并且还未处理的转账，才添加点击收款事件
                         bubble.onclick = () => acknowledgeTransfer(id);
                     }
                     break;
-                case 'red-packet': bubble.innerHTML = renderRedPacket(msg); break;
-                case 'poll': bubble.innerHTML = renderPoll(msg); break;
+                    case 'red-packet': bubble.innerHTML = renderRedPacket(msg); break;
+                    case 'poll': bubble.innerHTML = renderPoll(msg); break;
+                }
+                if(msg.type !== 'poll' && msg.type !== 'red-packet') bubble.innerHTML = bubbleContent;
+
+                const readStatus = Object.assign(document.createElement('span'), { className: 'read-status', textContent: '已读' });
+
+                contentWrapper.append(senderNameDiv, bubble, Object.assign(document.createElement('div'), { className: 'timestamp', textContent: msg.timestamp }));
+                messageElement.append(avatar, contentWrapper, readStatus);
             }
-            if(type !== 'poll' && type !== 'red-packet') bubble.innerHTML = bubbleContent;
 
-            // TASK 7: Add "Read" status element
-            const readStatus = Object.assign(document.createElement('span'), { className: 'read-status', textContent: '已读' });
-
-            contentWrapper.append(senderNameDiv, bubble, Object.assign(document.createElement('div'), { className: 'timestamp', textContent: msg.timestamp }));
-            messageElement.append(avatar, contentWrapper, readStatus);
-            
+            // 【核心修改 2】: 无论是什么消息，最后都统一在这里绑定事件监听器！
             let pressTimer = null, isLongPress = false;
             const startPress = (e) => { e.preventDefault(); isLongPress = false; pressTimer = setTimeout(() => { isLongPress = true; if (!isMultiSelectMode) toggleMultiSelectMode(true); toggleMessageSelection(messageElement); }, 750); };
             const cancelPress = () => clearTimeout(pressTimer);
@@ -2303,6 +2358,13 @@ const applyBubbleStyle = (style, character) => {
             if (!content) return;
             // TASK 5: Don't trigger AI response automatically
             addMessage(msgData);
+                  // 如果是用户发送的文本或图片消息，就触发天数记录
+        if (msgData.sender === 'user' && (msgData.type === 'text' || msgData.type === 'image')) {
+            const character = getCurrentCharacter();
+            if (character) {
+                updateAndShowStreak(character);
+            }
+        }
         };
         
         const getRecentMomentsContext = (limit = 5) => {
@@ -2378,7 +2440,7 @@ const applyBubbleStyle = (style, character) => {
                 history = character.chatHistory.slice(-memorySize);
             } else { 
                 const group = chatData;
-                const memorySize = 50;
+                            const memorySize = group.memorySize || 80; // 从群聊对象中读取记忆容量
                 const memberProfiles = group.memberIds.map(id => {
                     const char = characterSets.find(c => c.id === id);
                     return char ? `\n### Character: ${char.config.characterName} (ID: ${id})\n${char.config.characterPrompt}` : '';
@@ -2469,25 +2531,61 @@ ${openRedPacketsInfo ? `[重要任务]${openRedPacketsInfo} 有一个红包可�
         
                         const processAiResponse = (rawText) => {
             let responseArray = [];
-            try {
-                const cleanedText = rawText.trim().replace(/^```json\s*/, '').replace(/\s*```$/, '');
-                if (cleanedText.startsWith('[') && cleanedText.endsWith(']')) {
-                    responseArray = JSON.parse(cleanedText);
-                } else if (cleanedText.startsWith('{') && cleanedText.endsWith('}')) {
-                    responseArray = [JSON.parse(cleanedText)];
-                } else {
-                    throw new Error("Response is not a valid JSON array or object.");
-                }
-            } catch (e) {
-                 console.error("AI响应解析彻底失败。收到的原始文本:", rawText);
-                 addMessage({ sender: 'system', text: `AI响应格式错误，将作为纯文本处理。`, type: 'system' });
-                 const senderId = (currentChat.type === 'direct') ? currentChat.id : null;
-                 if(senderId) {
-                    addMessage({ sender: senderId, type: 'text', text: rawText });
-                 }
-                 return;
-            }
+                        try {
+                // --- 终极净化器 ---
+                // 步骤1: 使用正则表达式，从AI返回的杂乱文本中，强行“抠出”被[]包裹的、我们真正需要的部分。
+                // 这个正则表达式 [\s\S]*? 能匹配包括换行符在内的所有字符。
+                const jsonMatch = rawText.match(/\[[\s\S]*?\]/);
+                
+                let jsonString = null;
 
+                if (jsonMatch) {
+                    // 步骤2: 如果成功“抠出”，我们就得到了一个可能还含有换行符的字符串。
+                    // 步骤3: 在解析前，我们把抠出来的这部分里的所有换行符(\n)、回车符(\r)、制表符(\t)都替换掉。
+                    jsonString = jsonMatch[0].replace(/[\n\r\t]/g, '');
+                } else {
+                    // 如果连[]都找不到，说明格式错得太离谱，直接抛出错误，交给catch处理。
+                    throw new Error("在AI的回复中找不到有效的JSON数组结构。");
+                }
+                
+                // 步骤4: 将这个被彻底净化过的、干干净净的字符串送去解析。
+                if (jsonString) {
+                    responseArray = JSON.parse(jsonString);
+                } else {
+                    throw new Error("净化后未能获得有效的JSON字符串。");
+                }
+                       } catch (e) {
+                // 首先，还是在控制台里记录一下原始错误，方便以后万一有问题还能看到
+                console.error("JSON解析失败，启动Plan B。原始错误:", e);
+                console.error("收到的原始文本:", rawText);
+
+                // 给用户一个友好的提示，告诉他我们正在尝试补救
+                addMessage({ sender: 'system', text: `AI回复格式不标准，已尝试按文本内容解析。`, type: 'system' });
+
+                // 这是我们的“Plan B”核心：
+                // 1. 确定是谁在说话
+                const senderId = currentChat.type === 'direct' ? currentChat.id : null;
+                
+                // 只有在能确定发送者的情况下才继续（单聊模式）
+                if (senderId) {
+                    // 2. 把可能存在的JSON符号、标记都清理掉，只留下纯文本
+                    const plainText = rawText.replace(/```json|```|\[|\]|\{|\}/g, '').trim();
+
+                    // 3. 按换行符把文本分割成一行一行的数组
+                    const lines = plainText.split('\n');
+
+                    // 4. 遍历每一行，只要不是空行，就作为一条新消息发送出来
+                    lines.forEach(line => {
+                        if (line.trim()) { // 确保不是空的行
+                            addMessage({
+                                sender: senderId,
+                                type: 'text',
+                                text: line.trim() // 发送清理过的单行文本
+                            });
+                        }
+                    });
+                }
+            }
             if (!Array.isArray(responseArray) || responseArray.length === 0) { return; }
 
             let dataChanged = false;
@@ -2640,7 +2738,7 @@ ${openRedPacketsInfo ? `[重要任务]${openRedPacketsInfo} 有一个红包可�
         
         const handleTextImageSend = () => { openFeatureModal('描述一张图片', `<div class="form-group"><label for="text-image-input">请输入图片描述:</label><textarea id="text-image-input" rows="4"></textarea></div>`, '发送', () => { const text = getEl('text-image-input').value.trim(); if (text) { handleUserAction({ sender: 'user', type: 'text-image', text, llmContent: `[展示了一张照片。照片内容: ${text}]` }); closeModal(elements.featureModal); } }); };
         const handleVoiceSend = () => { openFeatureModal('发送语音消息', `<div class="form-group"><label for="voice-text-input">请输入你想“说”的内容:</label><textarea id="voice-text-input" rows="4"></textarea></div>`, '发送', () => { const text = getEl('voice-text-input').value.trim(); if (text) { handleUserAction({ sender: 'user', type: 'voice', text, voiceDuration: `0:${Math.max(1, Math.round(text.length / 5)).toString().padStart(2, '0')}`, llmContent: `[发送了一条语音消息。内容是: ${text}]` }); closeModal(elements.featureModal); } }); };
-        const handleTransferSend = () => { let tempCover = "https://images.unsplash.com/photo-1593697821028-7655f8458345?q=80&w=400"; openFeatureModal('转账', `<div class="form-group"><label>转账封面</label><img id="transfer-preview" src="${tempCover}" style="width:100%; height:110px; object-fit:cover; border-radius:8px; margin-bottom:10px; cursor:pointer;"></div><div class="form-group"><label for="transfer-amount">金额</label><input type="number" id="transfer-amount" placeholder="0.00"></div><div class="form-group"><label for="transfer-memo">备注</label><input type="text" id="transfer-memo" placeholder="（选填）"></div>`, '发送', () => { const amount = getEl('transfer-amount').value; if (amount > 0) { const memo = getEl('transfer-memo').value.trim(); handleUserAction({ sender: 'user', type: 'transfer', transferAmount: parseFloat(amount).toFixed(2), transferMemo: memo, transferCoverUrl: tempCover, transferStatus: 'pending', llmContent: `[转账 ${amount} 元。备注: ${memo}]` }); closeModal(elements.featureModal); } }); getEl('transfer-preview').onclick = () => elements.transferCoverInput.click(); elements.transferCoverInput.onchange = (e) => handleFileUpload(e.target.files[0], (d) => { tempCover = d; getEl('transfer-preview').src = d; }); };
+        const handleTransferSend = () => { let tempCover = "https://images.unsplash.com/photo-1593697821028-7655f8458345?q=80&w=400"; openFeatureModal('转账', `<div class="form-group"><label>转账封面</label><img id="transfer-preview" src="${tempCover}" style="width:100%; height:110px; object-fit:cover; border-radius:8px; margin-bottom:10px; cursor:pointer;"></div><div class="form-group"><label for="transfer-amount">金额</label><input type="number" id="transfer-amount" placeholder="0.00"></div><div class="form-group"><label for="transfer-memo">备注</label><input type="text" id="transfer-memo" placeholder="（选填）"></div>`, '发送', () => { const amount = getEl('transfer-amount').value; if (amount > 0) { const memo = getEl('transfer-memo').value.trim(); handleUserAction({ sender: 'user', type: 'transfer', transferAmount: parseFloat(amount).toFixed(2), transferMemo: memo, transferCoverUrl: tempCover, transferStatus: 'pending', llmContent: `[转账 ${amount} 元。备注: ${memo}]` });closeModal(elements.featureModal); } }); getEl('transfer-preview').onclick = () => elements.transferCoverInput.click(); elements.transferCoverInput.onchange = (e) => handleFileUpload(e.target.files[0], (d) => { tempCover = d; getEl('transfer-preview').src = d; }); };
         const handleStickerSend = () => { if (currentChat.type !== 'direct') {alert('群聊中暂不支持发送表情。'); return;} const character = getCurrentCharacter(); if(!character) return; let galleryHtml = '<p style="text-align:center;color:#999">没有表情。请在设置中添加。</p>'; if (character.userStickers.length > 0) galleryHtml = character.userStickers.map(url => `<img src="${url}" data-sticker-url="${url}" alt="sticker">`).join(''); openFeatureModal('选择表情', `<div id="sticker-gallery">${galleryHtml}</div>`, null, null); getEl('sticker-gallery').onclick = e => { if (e.target.tagName === 'IMG') { handleUserAction({ sender: 'user', type: 'sticker', stickerUrl: e.target.dataset.stickerUrl, llmContent: '[发送了一个表情]' }); closeModal(elements.featureModal); } }; };
         
         // --- Video Call Logic (Fully Isolated) ---
@@ -2746,15 +2844,21 @@ ${openRedPacketsInfo ? `[重要任务]${openRedPacketsInfo} 有一个红包可�
             elements.mindVoiceContent.textContent = '思考中...';
             elements.mindVoiceModal.classList.add('show');
 
-            const mindVoiceSystemPrompt = `[System Instruction for Language Model]
-    Your Persona: You are the character defined by the following prompt. You should ONLY use the personality, NOT the chat format instructions.
-    ${config.characterPrompt}
-    Your Task: You will be given a chat history. Your ONLY job is to analyze the conversation and output a single, short, internal thought of your character in the first person. This is an UNSPOKEN thought.
-    Output Rules (MANDATORY):
-    Your entire response MUST be a single sentence of plain text.
-    It MUST be an internal, unspoken thought, not a line of dialogue.
-    It MUST NOT contain any actions like (pounces) or descriptions in parentheses or asterisks. This is absolutely forbidden.
-    It MUST NOT be a direct reply to the user. It is a private thought.`;
+                        const mindVoiceSystemPrompt = `[CRITICAL TASK: INNER MONOLOGUE]
+[MANDATORY OUTPUT FORMAT]: Your entire response MUST be a single, short sentence of plain text.
+[ABSOLUTELY FORBIDDEN]: Do NOT use JSON. Do NOT use markdown. Do NOT use arrays ([]). Do NOT use objects ({}). Do NOT use quotation marks. Do NOT write dialogue.
+
+[Persona]:
+${config.characterPrompt}
+
+[Your Task]: Analyze the recent chat history. Based on your persona, write a single, private, unspoken thought. This is your character's immediate inner feeling. It is NOT a message to the user.
+
+[Example of CORRECT Output]:
+I can't believe she actually said that.
+
+[Example of INCORRECT, FORBIDDEN Output]:
+[{"type": "text", "content": "I can't believe she actually said that."}]
+`;
                 
             const payload = getApiPayload(model, chatHistory.slice(-config.memorySize), mindVoiceSystemPrompt);
 
@@ -2788,8 +2892,33 @@ ${openRedPacketsInfo ? `[重要任务]${openRedPacketsInfo} 有一个红包可�
                     content = responseData.choices?.[0]?.message?.content;
                 }
 
-                if (content) {
-                    elements.mindVoiceContent.textContent = content;
+                                if (content) {
+                    let thought = '';
+                    try {
+                        // 步骤1: 尝试解析为JSON，万一AI还是不听话
+                        const parsed = JSON.parse(content);
+                        if (Array.isArray(parsed) && parsed.length > 0) {
+                            // 步骤2: 从JSON数组里找到第一条文本消息
+                            for (const item of parsed) {
+                                if (item.type === 'text' && item.content) {
+                                    thought = item.content;
+                                    break; // 找到就立刻停止
+                                }
+                            }
+                        }
+                    } catch (e) {
+                        // 步骤3: 如果解析失败，说明它可能已经是纯文本了，直接使用
+                        thought = content;
+                    }
+
+                    // 步骤4: 如果上面的步骤都没找到思想，就用原始回复作为最后的保障
+                    if (!thought) {
+                        thought = content;
+                    }
+                    
+                    // 最后，清理一下可能残留的符号并显示
+                    elements.mindVoiceContent.textContent = thought.replace(/\[|\]|\{|\}|"type"|"content"|:|"/g, '').trim();
+
                 } else {
                     throw new Error('API没有返回有效的心声内容。');
                 }
@@ -3283,38 +3412,53 @@ Do NOT leave the reply_text empty. Do NOT add any text, markdown, or explanation
                 </div>
             </div>`;
     };
-        
-                           const renderComments = (comments, post, isReply = false) => {
-            if (!comments || comments.length === 0) return '';
-            const containerClass = isReply ? 'replies' : '';
-            return `<div class="${containerClass}">
-                ${comments.map(comment => {
-                    // --- 查找“评论者”的名字 ---
-                    const commenterChar = characterSets.find(char => char.id === comment.sender);
-                    const commenterName = comment.sender === 'user' 
+
+                      // --- 全新的“评论扁平化”工具函数 ---
+        const flattenComments = (comments) => {
+            const flatList = [];
+            const traverse = (commentNodes) => {
+                if (!commentNodes || commentNodes.length === 0) return;
+                for (const comment of commentNodes) {
+                    flatList.push(comment);
+                    traverse(comment.replies); // 继续深入下一层
+                }
+            };
+            traverse(comments);
+            return flatList;
+        };            
+                                 
+                          (comments, post) => {
+            // 首先，使用我们的小工具把所有评论“拍平”
+            const flatCommentList = flattenComments(comments);
+
+            if (flatCommentList.length === 0) return '';
+            
+            // 然后，遍历这个“拍平”后的列表来生成HTML
+            return flatCommentList.map(comment => {
+                // --- 查找“评论者”的名字 ---
+                const commenterChar = characterSets.find(char => char.id === comment.sender);
+                const commenterName = comment.sender === 'user' 
+                    ? (userMomentsProfile.name || '我') 
+                    : (commenterChar?.config.characterName || '一位朋友');
+
+                // --- 查找“被回复者”的名字 ---
+                let repliedToName = null;
+                if (comment.replyTo) {
+                    const repliedToChar = characterSets.find(char => char.id === comment.replyTo);
+                    repliedToName = comment.replyTo === 'user' 
                         ? (userMomentsProfile.name || '我') 
-                        : (commenterChar?.config.characterName || '一位朋友');
+                        : (repliedToChar?.config.characterName || '一位朋友');
+                }
 
-                    // --- 用同样严谨的逻辑，查找“被回复者”的名字 ---
-                    let repliedToName = null;
-                    if (comment.replyTo) {
-                        const repliedToChar = characterSets.find(char => char.id === comment.replyTo);
-                        repliedToName = comment.replyTo === 'user' 
-                            ? (userMomentsProfile.name || '我') 
-                            : (repliedToChar?.config.characterName || '一位朋友');
-                    }
-
-                    return `
-                        <div class="comment" data-comment-id="${comment.id}" data-sender-id="${comment.sender}">
-                            <span class="comment-user">${commenterName}</span>
-                            ${repliedToName ? ` <span style="color: #555;">回复</span> <span class="comment-user">${repliedToName}</span>` : ''}:
-                            <span class="comment-text">${comment.text}</span>
-                            <button class="delete-comment-btn" title="删除评论" style="background:none; border:none; color:#aaa; cursor:pointer; font-size:1.2em; padding: 0 5px;">×</button>
-                            ${renderComments(comment.replies, post, true)}
-                        </div>
-                    `;
-                }).join('')}
-            </div>`;
+                return `
+                    <div class="comment" data-comment-id="${comment.id}" data-sender-id="${comment.sender}">
+                        <span class="comment-user">${commenterName}</span>
+                        ${repliedToName ? ` <span style="color: #555; font-weight: normal;">回复</span> <span class="comment-user">${repliedToName}</span>` : ''}:
+                        <span class="comment-text">${comment.text}</span>
+                        <button class="delete-comment-btn" title="删除评论" style="background:none; border:none; color:#aaa; cursor:pointer; font-size:1.2em; padding: 0 5px;">×</button>
+                    </div>
+                `;
+            }).join('');
         };
         const addCommentOrReplyByAI = (type, momentId, text, senderId, targetCommentId, momentType) => {
     let momentSource;
@@ -3697,6 +3841,50 @@ const migrateDataToV7 = (oldData) => {
     event.target.value = '';
 };
 
+    // --- 全新的“计算并显示聊天天数”函数 ---
+    const updateAndShowStreak = (character) => {
+        if (!character || !character.config) return;
+
+        const config = character.config;
+        const streakEl = getEl('streak-notification');
+        const streakTextEl = getEl('streak-text');
+        
+        const today = new Date();
+        const todayStr = `${today.getFullYear()}-${today.getMonth() + 1}-${today.getDate()}`;
+
+        if (config.lastChatDate) {
+            const lastDate = new Date(config.lastChatDate);
+            const yesterday = new Date();
+            yesterday.setDate(today.getDate() - 1);
+            const yesterdayStr = `${yesterday.getFullYear()}-${yesterday.getMonth() + 1}-${yesterday.getDate()}`;
+            
+            // 如果上次聊天是昨天，天数+1
+            if (config.lastChatDate === yesterdayStr) {
+                config.streak++;
+            } 
+            // 如果上次聊天不是今天也不是昨天，天数重置为1
+            else if (config.lastChatDate !== todayStr) {
+                config.streak = 1;
+            }
+        } else {
+            // 如果是第一次聊天，天数就是1
+            config.streak = 1;
+        }
+
+        // 更新最后聊天日期为今天并保存
+        config.lastChatDate = todayStr;
+        saveAllData();
+
+        // 更新并显示提示条
+        streakTextEl.textContent = `與「${config.characterName}」已連續熱聊 ${config.streak} 天`;
+        streakEl.classList.add('show');
+
+        // 5秒后自动隐藏
+        setTimeout(() => {
+            streakEl.classList.remove('show');
+        }, 5000);
+    };
+                          
                 const setupEventListeners = () => {
                   elements.darkModeToggle.addEventListener('change', () => applyDarkMode(elements.darkModeToggle.checked));
                   elements.compactModeToggle.addEventListener('change', () => applyCompactMode(elements.compactModeToggle.checked));       
